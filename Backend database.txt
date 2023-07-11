@@ -1,0 +1,67 @@
+USER DETAILS:
+-------------
+user id -		 number primary key
+Username -> NAF0001      varchar() 
+name			 varchar()
+mail -> 		 varchar()
+password ->		 varchar() 
+Department ->  		 varchar()
+isActive ->		 bool
+phone number->		 varchar()
+
+
+
+Ticket Details:
+---------------
+
+user id                 number Foreign key //be
+ticket id		number primary key //be
+ticketRefNum		varchar()
+title			varchar()
+description		varchar()
+created by		varchar()
+department		varchar()
+startDateTime		DateTime
+endDateTime		DateTime
+owner			varchar() //be
+status			varchar() //be
+priority		number
+severity		number
+department		varchar()
+age			number //be
+importanceLevel		varchar() //high,medium,low //be
+comments		varchar()
+
+
+
+AttachmentsDetails:
+-------------------
+
+ticket id		number foreign key
+attachment id		number primary key
+filename		varchar()
+isActive		bool
+
+
+Ticket audit tracing Details:
+-----------------------------
+
+ticket id 		int foreign key
+history id 		int primary key
+status 			varchar()
+updated by 		varchar()
+updated on 		DateTime
+
+Tickets handled by Department user:(BCNF)
+-----------------------------------
+
+user_id int foreignkey
+ticket_id int foreignkey
+ticketHandleId int primary key
+
+lookup table:
+-------------
+
+lookup id		int primary key
+lookup value		varchar()
+lookup category		varchar()  (priority,severity,department)
