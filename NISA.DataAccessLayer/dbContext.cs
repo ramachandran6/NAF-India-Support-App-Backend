@@ -3,9 +3,10 @@ using NISA.Model;
 
 namespace NISA.DataAccessLayer
 {
-    public class dbContext:DbContext
+    public class DBContext:DbContext
     {
-        public dbContext(DbContextOptions<dbContext> options) : base(options) { }
+        public DBContext(DbContextOptions<DBContext> options) : base(options) { }
         public DbSet<TicketDetails> ticketDetails { get; set; }
+        public DbSet<UserDetails> userDetails { get; set; }
     }
 }
