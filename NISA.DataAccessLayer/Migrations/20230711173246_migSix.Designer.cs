@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NISA.DataAccessLayer;
 
@@ -11,9 +12,11 @@ using NISA.DataAccessLayer;
 namespace NISA.DataAccessLayer.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20230711173246_migSix")]
+    partial class migSix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,14 +89,20 @@ namespace NISA.DataAccessLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("deptUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("genUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ticketId")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("updatedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("userId")
+                        .HasColumnType("int");
 
                     b.HasKey("ticketHandleId");
 

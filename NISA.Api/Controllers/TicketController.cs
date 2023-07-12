@@ -18,14 +18,14 @@ namespace NISA.Api.Controllers
 
         [HttpGet]
         [Route("/TicketDetails")]
-        public async Task<IActionResult> getTicketDetails()
+        public async Task<IActionResult> GetTicketDetails()
         {
             return Ok( await dbconn.ticketDetails.ToListAsync());
         }
 
         [HttpPost]
         [Route("/TicketDetails/{id:int}")]
-        public async Task<IActionResult> addTicketDetails([FromRoute] int id,InsertTicketRequest itr)
+        public async Task<IActionResult> AddTicketDetails([FromRoute] int id,InsertTicketRequest itr)
         {
             if(itr == null)
             {
@@ -36,20 +36,18 @@ namespace NISA.Api.Controllers
                 int count = dbconn.ticketDetails.Count();
                 TicketDetails td = new TicketDetails();
                 td.userId = id;
-                //if (count == 0)
-                //{
-                //    td.id = 1;
-                //}
-                //else
-                //{
-                //    var res = dbconn.ticketDetails.Last();
-                //    td.id = res.id+1;
-                //}
-
+                var refnum = 1;
+                if(count != 0)
+                {
+                    var res = (from tickets in dbconn.ticketDetails orderby tickets.id descending select tickets).FirstOrDefault(); // sort by descending order based on id and selects the first row
+                    refnum = res.id + 1;
+                }
+                
+               
                 var prefix = "Tck";
-                int length = countDigits(td.id+1);
+                int length = CountDigits(refnum);
                 string suffix = td.id.ToString().PadLeft(4-length, '0');
-                td.ticketRefnum = prefix+suffix+(td.id+1);
+                td.ticketRefnum = prefix+suffix+refnum;
                 td.title = itr.title;
                 td.description = itr.description;
                 td.createdBy = itr.createdBy;
@@ -61,10 +59,23 @@ namespace NISA.Api.Controllers
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
-                DateTime dt1 = DateTime.Parse(itr.startDate);
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.department.Equals(itr.toDepartment)).AsQueryable());
+                int numOfTickets = int.MaxValue;
+                int user_id = 0;
+                tckHandlers.ForEach(x =>
+                {
+                    var result = from tick in dbconn.ticketHandlingDetails where tick.deptUserId.Equals(x.id) select tick;
+                    if (result.Count() < numOfTickets)
+                    {
+                        numOfTickets = result.Count();
+                        user_id = (int)x.id;
+                    }
+                });
+                td.owner = dbconn.userDetails.FirstOrDefault(x=> x.id == user_id).name;
+                DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(itr.endDate);
 
-                td.age = (int?)(dt2 - dt1).TotalDays;
+                td.age = (int?)(dt2 - date).TotalDays;
 
                 await dbconn.ticketDetails.AddAsync(td);
                 await dbconn.SaveChangesAsync();
@@ -74,7 +85,33 @@ namespace NISA.Api.Controllers
 
             
         }
-        public static int countDigits(int number)
+
+        [HttpGet]
+        [Route("/TicketDetails/{status}")]
+        public async Task<IActionResult> GetByStatus([FromRoute] string status)
+        {
+            var res = dbconn.ticketDetails.Where(x=> x.status == status).ToList();
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/TicketDetails/{startDate}&{endDate}")]
+        public async Task<IActionResult> GetByDates([FromRoute] string startDate, [FromRoute] string endDate)
+        {
+            DateTime sd = DateTime.Parse(startDate);
+            DateTime ed = DateTime.Parse(endDate);
+            var res = dbconn.ticketDetails.Where(x => DateTime.Parse(x.startDate) >= sd && DateTime.Parse(x.startDate) <= ed);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/TicketDetails/{id}")]
+        public async Task<IActionResult> GetById([FromRoute] int id)
+        {
+            var res = dbconn.ticketDetails.Where(x => x.id == id).ToList();
+            return Ok(res);
+        }
+        public static int CountDigits(int number)
         {
             int count = 0;
             while (number > 0)

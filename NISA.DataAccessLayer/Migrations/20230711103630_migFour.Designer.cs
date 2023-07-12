@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NISA.DataAccessLayer;
 
@@ -11,9 +12,11 @@ using NISA.DataAccessLayer;
 namespace NISA.DataAccessLayer.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20230711103630_migFour")]
+    partial class migFour
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,26 +81,6 @@ namespace NISA.DataAccessLayer.Migrations
                     b.HasKey("id");
 
                     b.ToTable("ticketDetails");
-                });
-
-            modelBuilder.Entity("NISA.Model.TicketHandlingDetails", b =>
-                {
-                    b.Property<Guid>("ticketHandleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("deptUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("genUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ticketId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ticketHandleId");
-
-                    b.ToTable("ticketHandlingDetails");
                 });
 
             modelBuilder.Entity("NISA.Model.UserDetails", b =>

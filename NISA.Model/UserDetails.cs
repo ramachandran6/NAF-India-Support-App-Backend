@@ -1,7 +1,10 @@
-﻿namespace NISA.Model
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace NISA.Model
 {
     public class UserDetails
     {
+        [Key]
         public int id { get; set; }
         public string? userName { get; set; }    
         public string? name { get; set; }

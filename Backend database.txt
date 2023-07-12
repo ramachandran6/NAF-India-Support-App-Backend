@@ -20,14 +20,14 @@ ticketRefNum		varchar()
 title			varchar()
 description		varchar()
 created by		varchar()
-department		varchar()
+toDepartment		varchar()
 startDateTime		DateTime
 endDateTime		DateTime
 owner			varchar() //be
 status			varchar() //be
 priority		number
 severity		number
-department		varchar()
+userDepartment		varchar()
 age			number //be
 importanceLevel		varchar() //high,medium,low //be
 comments		varchar()
@@ -65,3 +65,37 @@ lookup table:
 lookup id		int primary key
 lookup value		varchar()
 lookup category		varchar()  (priority,severity,department)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ public int id { get; set; }
+        public string? userName { get; set; }    
+        public string? name { get; set; }
+        public string? email { get; set; }   
+        public string? password { get; set; }    
+        public string? department { get; set; }  
+        public bool? isActive { get; set; }
+        public bool? phoneNumber { get; set; }
