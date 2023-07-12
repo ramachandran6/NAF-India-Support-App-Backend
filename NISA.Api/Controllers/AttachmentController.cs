@@ -23,7 +23,7 @@ namespace NISA.Api.Controllers
             }
             [HttpPost]
             [Route("/AttachmentDetails/{id:int}")]
-            public async Task<IActionResult> addAttachmentDetails([FromRoute] int id, InsertAttachmentRequest itr)
+            public async Task<IActionResult> addAttachmentDetails( InsertAttachmentRequest itr)
             {
                 if (itr == null)
                 {
@@ -32,8 +32,7 @@ namespace NISA.Api.Controllers
                 else
                 {
 
-                    AttachmentDetails attachmentDetails = new AttachmentDetails();
-                    attachmentDetails.id = id;
+                    AttachmentDetails attachmentDetails = new AttachmentDetails();                   
                     attachmentDetails.ticketId = this.dbContext.ticketDetails.Last().id;
                     attachmentDetails.fileName = itr.fileName;
                     attachmentDetails.isActive = true;
