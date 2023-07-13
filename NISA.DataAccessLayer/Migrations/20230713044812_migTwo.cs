@@ -5,7 +5,7 @@
 namespace NISA.DataAccessLayer.Migrations
 {
     /// <inheritdoc />
-    public partial class migFive : Migration
+    public partial class migTwo : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

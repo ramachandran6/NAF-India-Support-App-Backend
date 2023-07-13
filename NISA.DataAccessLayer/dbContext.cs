@@ -9,5 +9,7 @@ namespace NISA.DataAccessLayer
         public DbSet<TicketDetails> ticketDetails { get; set; }
         public DbSet<UserDetails> userDetails { get; set; }
         public DbSet<TicketHandlingDetails> ticketHandlingDetails { get; set; }
+        public DbSet<LookUpTable> lookUpTables { get; set; }
+        public DbSet<AttachmentDetails> attachmentDetails { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NISA.DataAccessLayer;
 using NISA.Model;
@@ -24,8 +26,8 @@ namespace NISA.Api.Controllers
         }
 
         [HttpPost]
-        [Route("/TicketDetails/{id:int}")]
-        public async Task<IActionResult> AddTicketDetails([FromRoute] int id,InsertTicketRequest itr)
+        [Route("/TicketDetails/{userId:int}")]
+        public async Task<IActionResult> AddTicketDetails([FromRoute] int userId,InsertTicketRequest itr)
         {
             if(itr == null)
             {
@@ -35,7 +37,7 @@ namespace NISA.Api.Controllers
             {
                 int count = dbconn.ticketDetails.Count();
                 TicketDetails td = new TicketDetails();
-                td.userId = id;
+                td.userId = userId;
                 var refnum = 1;
                 if(count != 0)
                 {
@@ -50,28 +52,37 @@ namespace NISA.Api.Controllers
                 td.ticketRefnum = prefix+suffix+refnum;
                 td.title = itr.title;
                 td.description = itr.description;
-                td.createdBy = itr.createdBy;
+                td.createdBy = dbconn.userDetails.FirstOrDefault(x => x.id == userId).name;
                 td.toDepartment = itr.toDepartment;
                 td.endDate = itr.endDate;
                 td.startDate = itr.startDate;
-                td.userDepartment = itr.userDepartment;
+                int lookupid = dbconn.userDetails.FirstOrDefault(x => x.id == userId).lookupRefId;
+                td.userDepartment = dbconn.lookUpTables.FirstOrDefault(x=> x.id == lookupid).value ;
                 td.priotity = itr.priotity;
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
-                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.department.Equals(itr.toDepartment)).AsQueryable());
+                int handlerLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(itr.toDepartment)).id;
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.lookupRefId.Equals(handlerLookUpId)).AsQueryable());
                 int numOfTickets = int.MaxValue;
                 int user_id = 0;
+                int prev_user_id = 0;
                 tckHandlers.ForEach(x =>
                 {
                     var result = from tick in dbconn.ticketHandlingDetails where tick.deptUserId.Equals(x.id) select tick;
                     if (result.Count() < numOfTickets)
                     {
                         numOfTickets = result.Count();
+                        prev_user_id = user_id;
                         user_id = (int)x.id;
                     }
                 });
-                td.owner = dbconn.userDetails.FirstOrDefault(x=> x.id == user_id).name;
+                if(userId == user_id)
+                {
+                    td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == prev_user_id).name;
+                }
+                else { td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == user_id).name; }
+                    
                 DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(itr.endDate);
 
@@ -82,8 +93,36 @@ namespace NISA.Api.Controllers
                 return Ok(td);
 
             }
+        }
 
-            
+
+        //[HttpPatch]
+        //[Route("/TicketDetails/{ticketId:int}")]
+        //public async Task<IActionResult> UpdateTicketDetails([FromRoute] int ticketId,[FromBody] JsonPatchDocument<UpdateTicketDetailsRequest> utr)
+        //{
+        //    try
+        //    {
+        //        var res = dbconn.ticketDetails.FirstOrDefault(x => x.id == ticketId);
+        //        if(res == null)
+        //        {
+        //            return BadRequest("Enter Valid details");
+        //        }
+        //        else
+        //        {
+        //            utr.ApplyTo(res, ModelState);
+        //        }
+        //    }
+        //}
+
+        [HttpDelete]
+        [Route("/TicketDetails/{ticketId:int}")]
+        public async Task<IActionResult> DeleteTicketDetails([FromRoute] int ticketId)
+        {
+            var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
+            dbconn.ticketDetails.Remove(res);
+            await dbconn.SaveChangesAsync();
+            return Ok(res);
+
         }
 
         [HttpGet]

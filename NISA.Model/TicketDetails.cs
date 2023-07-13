@@ -1,11 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NISA.Model
 {
     public class TicketDetails
     {
-        public int? userId { set; get; }
-        [Key]
+        [Display(Name = "UserDetails")]
+        public virtual int userId { set; get; }
+        [ForeignKey("userId")]
+        public virtual UserDetails UserDetails { set; get; }
         public int id { set; get; }
         public string? ticketRefnum { set; get; }
         public string? title { set; get; }

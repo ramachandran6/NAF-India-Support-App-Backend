@@ -51,7 +51,7 @@ namespace NISA.Api.Controllers
                 ud.name = iur.name;
                 ud.email = iur.email;
                 ud.password = iur.password; //encodePassword(iur.password);
-                ud.department = iur.department;
+                ud.lookupRefId = dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(iur.department)).id;
                 ud.isActive = true;
                 ud.phoneNumber = iur.phoneNumber;
 

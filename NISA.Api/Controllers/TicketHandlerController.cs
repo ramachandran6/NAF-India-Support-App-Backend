@@ -21,49 +21,51 @@ namespace NISA.Api.Controllers
             return Ok(await dbConn.ticketHandlingDetails.ToListAsync());
         }
 
-        [HttpPost]
-        [Route("TicketHandling/{ticketRefNumber}")]
-        public async Task<IActionResult> AssignHandlingDetails([FromRoute] string ticketRefNumber)
-        {
-            if (string.IsNullOrEmpty(ticketRefNumber))
-            {
-                return BadRequest("Enter valid details");
-            }
-            else
-            {
-                var res = dbConn.ticketHandlingDetails.FirstOrDefault(x => x.ticketId.Equals(ticketRefNumber));
-                if (res != null)
-                {
-                    return BadRequest("Ticket already assigned");
-                }
-                var department = dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).toDepartment;
-                List<UserDetails> tckHandlers = new List<UserDetails>(dbConn.userDetails.Where(x => x.department.Equals(department)).AsQueryable());
-                int numOfTickets = int.MaxValue;
-                int id = 0;
-                tckHandlers.ForEach(x =>
-                {
-                    var result = from tick in dbConn.ticketHandlingDetails where tick.deptUserId.Equals(x.id) select tick;
-                    if (result.Count() < numOfTickets)
-                    {
-                        numOfTickets = result.Count();
-                        id = (int)x.id;
-                    }
-                });
+        //[HttpPost]
+        //[Route("TicketHandling/{ticketRefNumber}")]
+        //public async Task<IActionResult> AssignHandlingDetails([FromRoute] string ticketRefNumber)
+        //{
+        //    if (string.IsNullOrEmpty(ticketRefNumber))
+        //    {
+        //        return BadRequest("Enter valid details");
+        //    }
+        //    else
+        //    {
+        //        var res = dbConn.ticketHandlingDetails.FirstOrDefault(x => x.ticketId.Equals(ticketRefNumber));
+        //        if (res != null)
+        //        {
+        //            return BadRequest("Ticket already assigned");
+        //        }
+        //        var department = dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).toDepartment;
 
-                TicketHandlingDetails thd = new TicketHandlingDetails();
-                thd.genUserId = dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).userId;
-                thd.deptUserId = id;
-                thd.ticketId = ticketRefNumber;
-                thd.ticketHandleId = new Guid();
-                dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).owner = dbConn.userDetails.FirstOrDefault(x=> x.id == id).name;
-                await dbConn.ticketHandlingDetails.AddAsync(thd);
-                await dbConn.SaveChangesAsync();
+        //        int handlerLookUpId = dbConn.lookUpTables.FirstOrDefault(x => x.value.Equals(itr.toDepartment)).lookupId;
+        //        List<UserDetails> tckHandlers = new List<UserDetails>(dbConn.userDetails.Where(x => x.lookupId.Equals(handlerLookUpId)).AsQueryable());
+        //        int numOfTickets = int.MaxValue;
+        //        int id = 0;
+        //        tckHandlers.ForEach(x =>
+        //        {
+        //            var result = from tick in dbConn.ticketHandlingDetails where tick.deptUserId.Equals(x.id) select tick;
+        //            if (result.Count() < numOfTickets)
+        //            {
+        //                numOfTickets = result.Count();
+        //                id = (int)x.id;
+        //            }
+        //        });
 
-                return Ok(thd);
+        //        TicketHandlingDetails thd = new TicketHandlingDetails();
+        //        thd.genUserId = dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).userId;
+        //        thd.deptUserId = id;
+        //        thd.ticketId = ticketRefNumber;
+        //        thd.ticketHandleId = new Guid();
+        //        dbConn.ticketDetails.FirstOrDefault(x => x.ticketRefnum.Equals(ticketRefNumber)).owner = dbConn.userDetails.FirstOrDefault(x=> x.id == id).name;
+        //        await dbConn.ticketHandlingDetails.AddAsync(thd);
+        //        await dbConn.SaveChangesAsync();
 
-            }
+        //        return Ok(thd);
 
-        }
+        //    }
+
+        //}
 
         
         
