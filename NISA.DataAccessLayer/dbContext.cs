@@ -11,5 +11,6 @@ namespace NISA.DataAccessLayer
         public DbSet<TicketHandlingDetails> ticketHandlingDetails { get; set; }
         public DbSet<LookUpTable> lookUpTables { get; set; }
         public DbSet<AttachmentDetails> attachmentDetails { get; set; }
+        public DbSet<fileUpload> fileUploads { get; set; }
     }
 }
