@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -42,20 +41,6 @@ namespace NISA.DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ticketHandlingDetails",
-                columns: table => new
-                {
-                    ticketHandleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    genUserId = table.Column<int>(type: "int", nullable: true),
-                    deptUserId = table.Column<int>(type: "int", nullable: true),
-                    ticketId = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ticketHandlingDetails", x => x.ticketHandleId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "userDetails",
                 columns: table => new
                 {
@@ -66,18 +51,17 @@ namespace NISA.DataAccessLayer.Migrations
                     email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     password = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
-                    lookupRefId = table.Column<int>(type: "int", nullable: false),
+                    departmentLookupRefId = table.Column<int>(type: "int", nullable: true),
                     phoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_userDetails", x => x.id);
                     table.ForeignKey(
-                        name: "FK_userDetails_lookUpTables_lookupRefId",
-                        column: x => x.lookupRefId,
+                        name: "FK_userDetails_lookUpTables_departmentLookupRefId",
+                        column: x => x.departmentLookupRefId,
                         principalTable: "lookUpTables",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -86,32 +70,42 @@ namespace NISA.DataAccessLayer.Migrations
                 {
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    userId = table.Column<int>(type: "int", nullable: false),
+                    userId = table.Column<int>(type: "int", nullable: true),
                     ticketRefnum = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     createdBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    toDepartment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    departmentLookUpId = table.Column<int>(type: "int", nullable: true),
                     startDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     endDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     owner = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     priotity = table.Column<int>(type: "int", nullable: true),
                     severity = table.Column<int>(type: "int", nullable: true),
-                    userDepartment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    assignedTo = table.Column<int>(type: "int", nullable: false),
                     age = table.Column<int>(type: "int", nullable: true),
-                    attachments = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    attachments = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    isDeleted = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ticketDetails", x => x.id);
                     table.ForeignKey(
+                        name: "FK_ticketDetails_lookUpTables_departmentLookUpId",
+                        column: x => x.departmentLookUpId,
+                        principalTable: "lookUpTables",
+                        principalColumn: "id");
+                    table.ForeignKey(
                         name: "FK_ticketDetails_userDetails_userId",
                         column: x => x.userId,
                         principalTable: "userDetails",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ticketDetails_departmentLookUpId",
+                table: "ticketDetails",
+                column: "departmentLookUpId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ticketDetails_userId",
@@ -119,9 +113,9 @@ namespace NISA.DataAccessLayer.Migrations
                 column: "userId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_userDetails_lookupRefId",
+                name: "IX_userDetails_departmentLookupRefId",
                 table: "userDetails",
-                column: "lookupRefId");
+                column: "departmentLookupRefId");
         }
 
         /// <inheritdoc />
@@ -132,9 +126,6 @@ namespace NISA.DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "ticketDetails");
-
-            migrationBuilder.DropTable(
-                name: "ticketHandlingDetails");
 
             migrationBuilder.DropTable(
                 name: "userDetails");

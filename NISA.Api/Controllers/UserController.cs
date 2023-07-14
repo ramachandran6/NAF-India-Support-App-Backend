@@ -40,7 +40,7 @@ namespace NISA.Api.Controllers
                 if (count != 0)
                 {
                     var res = (from user in dbconn.userDetails orderby user.id descending select user).FirstOrDefault(); // sort by descending order based on id and selects the first row
-                    suffixnum = res.id + 1;
+                    suffixnum = (int)(res.id + 1);
                 }
                 UserDetails ud = new UserDetails();
 
@@ -51,7 +51,7 @@ namespace NISA.Api.Controllers
                 ud.name = iur.name;
                 ud.email = iur.email;
                 ud.password = iur.password; //encodePassword(iur.password);
-                ud.lookupRefId = dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(iur.department)).id;
+                ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(iur.department)).id;
                 ud.isActive = true;
                 ud.phoneNumber = iur.phoneNumber;
 
@@ -90,6 +90,39 @@ namespace NISA.Api.Controllers
         //    //return result;
         //}
 
+        [HttpPut]
+        [Route("/User/{userId:int}")]
+        public async Task<IActionResult> UpdateUserDetails([FromRoute] int userId,UpdateUserDetails updateRequest)
+        {
+            if(updateRequest == null)
+            {
+                return BadRequest("enter valid details");
+            }
+            else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x=> x.id  == userId);
+                res.name = string.IsNullOrEmpty(updateRequest.name) ? res.name : updateRequest.name;
+                res.phoneNumber = string.IsNullOrEmpty(updateRequest.phoneNumber) ? res.phoneNumber : updateRequest.phoneNumber;
 
+                dbconn.userDetails.Update(res);
+                await dbconn.SaveChangesAsync();
+
+                return Ok(res);
+            }
+        }
+
+        [HttpDelete]
+        [Route("/User/{userId:int}")]
+        public async Task<IActionResult> DeleteUser([FromRoute] int userId)
+        {
+            //var res = dbconn.userDetails.FirstOrDefault(x => x.id == id);
+            //res.isActive = false;
+            var res = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
+            dbconn.userDetails.Remove(res);
+            await dbconn.SaveChangesAsync();
+
+            return Ok(res);
+        }
+        
     }
 }

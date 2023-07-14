@@ -27,9 +27,10 @@ namespace NISA.Api.Controllers
 
         [HttpPost]
         [Route("/TicketDetails/{userId:int}")]
-        public async Task<IActionResult> AddTicketDetails([FromRoute] int userId,InsertTicketRequest itr)
+        public async Task<IActionResult> AddTicketDetails([FromRoute] int userId, InsertTicketRequest itr)
+
         {
-            if(itr == null)
+            if (itr == null)
             {
                 return BadRequest("Enter valid details");
             }
@@ -39,54 +40,54 @@ namespace NISA.Api.Controllers
                 TicketDetails td = new TicketDetails();
                 td.userId = userId;
                 var refnum = 1;
-                if(count != 0)
+                if (count != 0)
                 {
                     var res = (from tickets in dbconn.ticketDetails orderby tickets.id descending select tickets).FirstOrDefault(); // sort by descending order based on id and selects the first row
                     refnum = res.id + 1;
                 }
-                
-               
                 var prefix = "Tck";
-                int length = CountDigits(refnum);
-                string suffix = td.id.ToString().PadLeft(4-length, '0');
-                td.ticketRefnum = prefix+suffix+refnum;
+                int length = CountDigits(td.id + 1);
+                string suffix = td.id.ToString().PadLeft(4 - length, '0');
+                td.ticketRefnum = prefix + suffix + (td.id + 1);
                 td.title = itr.title;
                 td.description = itr.description;
                 td.createdBy = dbconn.userDetails.FirstOrDefault(x => x.id == userId).name;
-                td.toDepartment = itr.toDepartment;
+                td.departmentLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(itr.toDepartment)).id;
                 td.endDate = itr.endDate;
                 td.startDate = itr.startDate;
-                int lookupid = dbconn.userDetails.FirstOrDefault(x => x.id == userId).lookupRefId;
-                td.userDepartment = dbconn.lookUpTables.FirstOrDefault(x=> x.id == lookupid).value ;
-                td.priotity = itr.priotity;
+                int lookupid = (int)dbconn.userDetails.FirstOrDefault(x => x.id == userId).departmentLookupRefId;
+                td.priotity = itr.priority;
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
-                int handlerLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(itr.toDepartment)).id;
-                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.lookupRefId.Equals(handlerLookUpId)).AsQueryable());
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.departmentLookupRefId.Equals(td.departmentLookUpId)).AsQueryable());
                 int numOfTickets = int.MaxValue;
                 int user_id = 0;
                 int prev_user_id = 0;
                 tckHandlers.ForEach(x =>
                 {
-                    var result = from tick in dbconn.ticketHandlingDetails where tick.deptUserId.Equals(x.id) select tick;
-                    if (result.Count() < numOfTickets)
+                    int num = dbconn.ticketDetails.Where(y => y.assignedTo == x.id).Count();
+                    if (numOfTickets > num)
                     {
-                        numOfTickets = result.Count();
+                        numOfTickets = num;
                         prev_user_id = user_id;
-                        user_id = (int)x.id;
+                        user_id = x.id;
                     }
                 });
-                if(userId == user_id)
+                if (user_id == userId)
                 {
-                    td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == prev_user_id).name;
+                    td.assignedTo = prev_user_id;
                 }
-                else { td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == user_id).name; }
-                    
+                else
+                {
+                    td.assignedTo = user_id;
+                }
+                td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == td.assignedTo).name;
                 DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(itr.endDate);
 
                 td.age = (int?)(dt2 - date).TotalDays;
+                td.isDeleted = false;
 
                 await dbconn.ticketDetails.AddAsync(td);
                 await dbconn.SaveChangesAsync();
@@ -114,13 +115,41 @@ namespace NISA.Api.Controllers
         //    }
         //}
 
+        [HttpPut]
+        [Route("/TicketDetails/{ticketId:int}")]
+        public async Task<IActionResult> UpdateTicketDetails([FromRoute] int ticketId, UpdateTicketDetailsRequest updateRequest)
+        {
+            if(updateRequest == null)
+            {
+                return BadRequest("Enter valid details");
+            }
+            else
+            {
+                var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
+
+                res.departmentLookUpId = string.IsNullOrEmpty(updateRequest.toDepartment) ? res.departmentLookUpId : dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(updateRequest.toDepartment)).id;
+                res.endDate = string.IsNullOrEmpty(updateRequest.endDate)?res.endDate : updateRequest.endDate;
+                res.priotity = updateRequest.priority == 0 ? res.priotity : updateRequest.priority;
+                res.severity = updateRequest.severity == 0 ? res.severity : updateRequest.severity;
+                res.attachments = string.IsNullOrEmpty(updateRequest.attachments) ? res.attachments : updateRequest.attachments;
+
+                dbconn.ticketDetails.Update(res);
+                dbconn.SaveChanges();
+
+                return Ok(res);
+
+            }
+        }
+
         [HttpDelete]
         [Route("/TicketDetails/{ticketId:int}")]
         public async Task<IActionResult> DeleteTicketDetails([FromRoute] int ticketId)
         {
+            //var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId).isDeleted = true;
             var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
             dbconn.ticketDetails.Remove(res);
             await dbconn.SaveChangesAsync();
+
             return Ok(res);
 
         }
@@ -129,7 +158,9 @@ namespace NISA.Api.Controllers
         [Route("/TicketDetails/{status}")]
         public async Task<IActionResult> GetByStatus([FromRoute] string status)
         {
-            var res = dbconn.ticketDetails.Where(x=> x.status == status).ToList();
+            //int statusLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(status)).id;
+            //var res = dbconn.ticketDetails.Where(x=> x.statusLookUpRefId == statusLookUpId).ToList();
+            var res = dbconn.ticketDetails.Where(x=> x.status == status);
             return Ok(res);
         }
 
@@ -144,11 +175,54 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
-        [Route("/TicketDetails/{id}")]
-        public async Task<IActionResult> GetById([FromRoute] int id)
+        [Route("/TicketDetails/{department}")]
+        public async Task<IActionResult> GetById([FromRoute] string department)
         {
-            var res = dbconn.ticketDetails.Where(x => x.id == id).ToList();
+            var res = dbconn.ticketDetails.Where(x => x.departmentLookUpId == dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(department)).id).ToList();
             return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/Escalate/{ticketId:int}")]
+        public async Task<IActionResult> EscalateTicket([FromRoute] int ticketId)
+        {
+            var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
+            if(res == null)
+            {
+                return BadRequest("TicketId not found");
+            }
+            else
+            {
+                int previousTicketHandlerId = res.assignedTo;
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.departmentLookupRefId.Equals(res.departmentLookUpId)).AsQueryable());
+                int numOfTickets = int.MaxValue;
+                int user_id = 0;
+                int prev_user_id = 0;
+                tckHandlers.ForEach(x =>
+                {
+                    int num = dbconn.ticketDetails.Where(y => y.assignedTo == x.id).Count();
+                    if (numOfTickets > num && x.departmentLookupRefId != previousTicketHandlerId)
+                    {
+                        numOfTickets = num;
+                        prev_user_id = user_id;
+                        user_id = x.id;
+                    }
+                });
+                if (user_id == res.id)
+                {
+                    res.assignedTo = prev_user_id;
+                }
+                else
+                {
+                    res.assignedTo = user_id;
+                }
+                res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
+
+                dbconn.ticketDetails.Update(res);
+                await dbconn.SaveChangesAsync();
+
+                return Ok(res);
+            }
         }
         public static int CountDigits(int number)
         {

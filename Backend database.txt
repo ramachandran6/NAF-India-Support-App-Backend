@@ -52,12 +52,17 @@ status 			varchar()
 updated by 		varchar()
 updated on 		DateTime
 
-Tickets handled by Department user:(BCNF)
+Tickets handled by Department user:
 -----------------------------------
+	public int id { get; set; }
+        public int? ticketHandlerId { get; set; }
+        public string? ticketHandlerName { get; set; }
+        [Display(Name ="LookUpTable")]
+        public virtual int departmentLookUpRefId { get; set; }
+        [ForeignKey("departmentLookUpRefId")]
+        public virtual LookUpTable LookUpTable { get; set; }
+        public int handlingNumberOfTickets { get; set; }
 
-user_id int foreignkey
-ticket_id int foreignkey
-ticketHandleId int primary key
 
 lookup table:
 -------------
@@ -71,31 +76,4 @@ lookup category		varchar()  (priority,severity,department)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- public int id { get; set; }
-        public string? userName { get; set; }    
-        public string? name { get; set; }
-        public string? email { get; set; }   
-        public string? password { get; set; }    
-        public string? department { get; set; }  
-        public bool? isActive { get; set; }
-        public bool? phoneNumber { get; set; }
+	

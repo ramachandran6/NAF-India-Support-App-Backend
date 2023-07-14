@@ -17,7 +17,7 @@ namespace NISA.DataAccessLayer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.8")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -79,17 +79,26 @@ namespace NISA.DataAccessLayer.Migrations
                     b.Property<int?>("age")
                         .HasColumnType("int");
 
+                    b.Property<int>("assignedTo")
+                        .HasColumnType("int");
+
                     b.Property<string>("attachments")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("createdBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("departmentLookUpId")
+                        .HasColumnType("int");
+
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("endDate")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("isDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("owner")
                         .HasColumnType("nvarchar(max)");
@@ -112,40 +121,16 @@ namespace NISA.DataAccessLayer.Migrations
                     b.Property<string>("title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("toDepartment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("userDepartment")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("userId")
+                    b.Property<int?>("userId")
                         .HasColumnType("int");
 
                     b.HasKey("id");
 
+                    b.HasIndex("departmentLookUpId");
+
                     b.HasIndex("userId");
 
                     b.ToTable("ticketDetails");
-                });
-
-            modelBuilder.Entity("NISA.Model.TicketHandlingDetails", b =>
-                {
-                    b.Property<Guid>("ticketHandleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("deptUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("genUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ticketId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ticketHandleId");
-
-                    b.ToTable("ticketHandlingDetails");
                 });
 
             modelBuilder.Entity("NISA.Model.UserDetails", b =>
@@ -156,14 +141,14 @@ namespace NISA.DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
+                    b.Property<int?>("departmentLookupRefId")
+                        .HasColumnType("int");
+
                     b.Property<string>("email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("isActive")
                         .HasColumnType("bit");
-
-                    b.Property<int>("lookupRefId")
-                        .HasColumnType("int");
 
                     b.Property<string>("name")
                         .HasColumnType("nvarchar(max)");
@@ -179,18 +164,22 @@ namespace NISA.DataAccessLayer.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("lookupRefId");
+                    b.HasIndex("departmentLookupRefId");
 
                     b.ToTable("userDetails");
                 });
 
             modelBuilder.Entity("NISA.Model.TicketDetails", b =>
                 {
+                    b.HasOne("NISA.Model.LookUpTable", "LookUpTable")
+                        .WithMany()
+                        .HasForeignKey("departmentLookUpId");
+
                     b.HasOne("NISA.Model.UserDetails", "UserDetails")
                         .WithMany()
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("userId");
+
+                    b.Navigation("LookUpTable");
 
                     b.Navigation("UserDetails");
                 });
@@ -199,9 +188,7 @@ namespace NISA.DataAccessLayer.Migrations
                 {
                     b.HasOne("NISA.Model.LookUpTable", "LookUpTables")
                         .WithMany()
-                        .HasForeignKey("lookupRefId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("departmentLookupRefId");
 
                     b.Navigation("LookUpTables");
                 });

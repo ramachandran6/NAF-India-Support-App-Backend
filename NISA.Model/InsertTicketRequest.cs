@@ -13,7 +13,7 @@ namespace NISA.Model
         public string? toDepartment { set; get; }
         public string? startDate { set; get; }
         public string? endDate { set; get; }
-        public int? priotity { set; get; }
+        public int? priority { set; get; }
         public int? severity { set; get; }
         public string? attachments { set; get;}
     }
