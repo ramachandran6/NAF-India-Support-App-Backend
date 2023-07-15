@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -51,6 +52,7 @@ namespace NISA.DataAccessLayer.Migrations
                     email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     password = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
+                    isLoggedIn = table.Column<bool>(type: "bit", nullable: true),
                     departmentLookupRefId = table.Column<int>(type: "int", nullable: true),
                     phoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -102,6 +104,37 @@ namespace NISA.DataAccessLayer.Migrations
                         principalColumn: "id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ticketHistoryTables",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ticketRefNum = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    priority = table.Column<int>(type: "int", nullable: true),
+                    severity = table.Column<int>(type: "int", nullable: true),
+                    departmentLookUpRefId = table.Column<int>(type: "int", nullable: true),
+                    attachments = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    endDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    updatedBy = table.Column<int>(type: "int", nullable: true),
+                    updatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ticketHistoryTables", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_ticketHistoryTables_lookUpTables_departmentLookUpRefId",
+                        column: x => x.departmentLookUpRefId,
+                        principalTable: "lookUpTables",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_ticketHistoryTables_userDetails_updatedBy",
+                        column: x => x.updatedBy,
+                        principalTable: "userDetails",
+                        principalColumn: "id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ticketDetails_departmentLookUpId",
                 table: "ticketDetails",
@@ -111,6 +144,16 @@ namespace NISA.DataAccessLayer.Migrations
                 name: "IX_ticketDetails_userId",
                 table: "ticketDetails",
                 column: "userId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ticketHistoryTables_departmentLookUpRefId",
+                table: "ticketHistoryTables",
+                column: "departmentLookUpRefId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ticketHistoryTables_updatedBy",
+                table: "ticketHistoryTables",
+                column: "updatedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_userDetails_departmentLookupRefId",
@@ -126,6 +169,9 @@ namespace NISA.DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "ticketDetails");
+
+            migrationBuilder.DropTable(
+                name: "ticketHistoryTables");
 
             migrationBuilder.DropTable(
                 name: "userDetails");

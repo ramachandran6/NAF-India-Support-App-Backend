@@ -8,15 +8,23 @@ using System.Threading.Tasks;
 
 namespace NISA.Model
 {
-    class TicketHistoryTable
+    public class TicketHistoryTable
     {
         public int id {  get; set; }
-        [Display(Name ="TicketDetails")]
-        public virtual int? ticketId { get; set; }
-        [ForeignKey("ticketId")]
-        public virtual TicketDetails TicketDetails { get; }
+        public string? ticketRefNum { get; set; }
         public string? status { get; set; }
-        public string? updatedBy { get; set; }
-        public string? updatedOn { get; set; }
+        public int? priority { get; set; }
+        public int? severity { get; set; }
+        [Display(Name ="LookUpTable")]
+        public virtual int? departmentLookUpRefId { get; set; }
+        [ForeignKey("departmentLookUpRefId")]
+        public virtual LookUpTable LookUpTable { get; set; }
+        public string? attachments { get; set; }
+        public string? endDate { get; set; }
+        [Display(Name="UserDetails")]
+        public virtual int? updatedBy { get; set; }
+        [ForeignKey("updatedBy")]
+        public virtual UserDetails UserDetails { get; set; }
+        public DateTime? updatedOn { get; set; }
     }
 }

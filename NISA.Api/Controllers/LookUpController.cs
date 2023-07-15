@@ -22,6 +22,13 @@ namespace NISA.Api.Controllers
             return Ok( await dbconn.lookUpTables.ToListAsync());
         }
 
+        [HttpGet]
+        [Route("LookUpDetails/{id:int}")]
+        public async Task<IActionResult> GetLookUpValue([FromRoute] int id)
+        {
+            return Ok(await dbconn.lookUpTables.FirstOrDefaultAsync(x => x.id == id));
+        }
+
         [HttpPost]
         [Route("LookupDetails")]
         public async Task<IActionResult> AddLookUpDetails(InsertLookUpRequest ilr)

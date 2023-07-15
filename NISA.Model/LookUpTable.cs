@@ -12,7 +12,7 @@ namespace NISA.Model
         public int id { get; set; }
         public string? value { get; set; }
         public string? category { get; set; }
-        public IList<TicketDetails> TicketDetails { get; } = new List<TicketDetails>();
-        public IList<UserDetails> UserDetails { get; } = new List<UserDetails>();
+        //public IList<TicketDetails> TicketDetails { get; } = new List<TicketDetails>();
+        //public IList<UserDetails> UserDetails { get; } = new List<UserDetails>();
     }
 }

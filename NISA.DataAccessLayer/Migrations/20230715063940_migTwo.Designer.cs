@@ -12,8 +12,8 @@ using NISA.DataAccessLayer;
 namespace NISA.DataAccessLayer.Migrations
 {
     [DbContext(typeof(DBContext))]
-    [Migration("20230713164702_migOne")]
-    partial class migOne
+    [Migration("20230715063940_migTwo")]
+    partial class migTwo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,6 +103,9 @@ namespace NISA.DataAccessLayer.Migrations
                     b.Property<bool?>("isDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("isReopened")
+                        .HasColumnType("bit");
+
                     b.Property<string>("owner")
                         .HasColumnType("nvarchar(max)");
 
@@ -136,6 +139,50 @@ namespace NISA.DataAccessLayer.Migrations
                     b.ToTable("ticketDetails");
                 });
 
+            modelBuilder.Entity("NISA.Model.TicketHistoryTable", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<string>("attachments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("departmentLookUpRefId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("endDate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("priority")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("severity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ticketRefNum")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("updatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("updatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("departmentLookUpRefId");
+
+                    b.HasIndex("updatedBy");
+
+                    b.ToTable("ticketHistoryTables");
+                });
+
             modelBuilder.Entity("NISA.Model.UserDetails", b =>
                 {
                     b.Property<int>("id")
@@ -151,6 +198,9 @@ namespace NISA.DataAccessLayer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("isActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isLoggedIn")
                         .HasColumnType("bit");
 
                     b.Property<string>("name")
@@ -181,6 +231,21 @@ namespace NISA.DataAccessLayer.Migrations
                     b.HasOne("NISA.Model.UserDetails", "UserDetails")
                         .WithMany()
                         .HasForeignKey("userId");
+
+                    b.Navigation("LookUpTable");
+
+                    b.Navigation("UserDetails");
+                });
+
+            modelBuilder.Entity("NISA.Model.TicketHistoryTable", b =>
+                {
+                    b.HasOne("NISA.Model.LookUpTable", "LookUpTable")
+                        .WithMany()
+                        .HasForeignKey("departmentLookUpRefId");
+
+                    b.HasOne("NISA.Model.UserDetails", "UserDetails")
+                        .WithMany()
+                        .HasForeignKey("updatedBy");
 
                     b.Navigation("LookUpTable");
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using NISA.Model;
 
 namespace NISA.DataAccessLayer
@@ -10,5 +11,6 @@ namespace NISA.DataAccessLayer
         public DbSet<UserDetails> userDetails { get; set; }
         public DbSet<LookUpTable> lookUpTables { get; set; }
         public DbSet<AttachmentDetails> attachmentDetails { get; set; }
+        public DbSet<TicketHistoryTable> ticketHistoryTables { get; set; }
     }
 }

@@ -5,7 +5,7 @@ Username -> NAF0001      varchar()
 name			 varchar()
 mail -> 		 varchar()
 password ->		 varchar() 
-Department ->  		 varchar()
+depLookUpRefId ->  	 varchar()
 isActive ->		 bool
 phone number->		 varchar()
 
@@ -20,14 +20,14 @@ ticketRefNum		varchar()
 title			varchar()
 description		varchar()
 created by		varchar()
-toDepartment		varchar()
+departmentLookUpId	varchar()
 startDateTime		DateTime
 endDateTime		DateTime
 owner			varchar() //be
+assignedTo		id
 status			varchar() //be
 priority		number
 severity		number
-userDepartment		varchar()
 age			number //be
 importanceLevel		varchar() //high,medium,low //be
 comments		varchar()
@@ -52,28 +52,42 @@ status 			varchar()
 updated by 		varchar()
 updated on 		DateTime
 
-Tickets handled by Department user:
------------------------------------
-	public int id { get; set; }
-        public int? ticketHandlerId { get; set; }
-        public string? ticketHandlerName { get; set; }
-        [Display(Name ="LookUpTable")]
-        public virtual int departmentLookUpRefId { get; set; }
-        [ForeignKey("departmentLookUpRefId")]
-        public virtual LookUpTable LookUpTable { get; set; }
-        public int handlingNumberOfTickets { get; set; }
-
 
 lookup table:
 -------------
 
 lookup id		int primary key
 lookup value		varchar()
-lookup category		varchar()  (priority,severity,department)
+lookup category		varchar()  (department)
+public IList<TicketDetails> TicketDetails { get; } = new List<TicketDetails>();
+public IList<UserDetails> UserDetails { get; } = new List<UserDetails>();
+
+Comments Table:
+---------------
+
+
+History Table:
+--------------
+public int id {  get; set; }
+        public string? ticketRefNum { get; set; }
+        public string? status { get; set; }
+        public int? priority { get; set; }
+        public int? severity { get; set; }
+        [Display(Name ="LookUpTable")]
+        public virtual int? departmentLookUpRefId { get; set; }
+        [ForeignKey("departmentLookUpRefId")]
+        public virtual LookUpTable LookUpTable { get; set; }
+        public string? attachments { get; set; }
+        public string? endDate { get; set; }
+        public int? updatedBy { get; set; }
+        public string? updatedOn { get; set; }
 
 
 
 
+manage account -> security ->2 step verification - on
+app password
 
 
+font awesome -> send embed kit -> take the icon <i></i> -> replace class with className or icon with className
 	

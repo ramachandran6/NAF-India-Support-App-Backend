@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
 using System;
@@ -21,7 +22,7 @@ namespace NISA.Api.Controllers
         [Route("/User")]
         public async Task<IActionResult> GetUserDetails()
         {
-            return Ok(await dbconn.userDetails.ToListAsync());
+            return Ok(await dbconn.userDetails.Where(x=> x.isActive == true).ToListAsync());
         }
 
         [HttpPost]
@@ -53,12 +54,60 @@ namespace NISA.Api.Controllers
                 ud.password = iur.password; //encodePassword(iur.password);
                 ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(iur.department)).id;
                 ud.isActive = true;
+                ud.isLoggedIn = false;
                 ud.phoneNumber = iur.phoneNumber;
 
                 await dbconn.userDetails.AddAsync(ud);
                 await dbconn.SaveChangesAsync();
+                
+                //SendEmail(ud);
 
                 return Ok(ud);
+            }
+        }
+
+        [HttpDelete]
+        [Route("/User/{userId:int}")]
+        public async Task<IActionResult> DeleteUser([FromRoute] int userId)
+        {
+            var res = await dbconn.userDetails.FirstOrDefaultAsync(x => x.id == userId);
+            if(res == null)
+            {
+                return BadRequest("Id not found");
+            }
+            else
+            {
+                res.isActive = false;
+                
+                dbconn.userDetails.Update(res);
+                await dbconn.SaveChangesAsync();
+
+                return Ok(res);
+            }
+        }
+
+        [HttpGet]
+        [Route("/Login/{email}&{password}")]
+        public async Task<IActionResult> UserLogin([FromRoute] string email, [FromRoute] string password)
+        {
+            if (email == null || password == null)
+            {
+                return BadRequest("Username or password is not filled");
+            }
+            else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x => x.email.Equals(email));
+                if (res == null)
+                {
+                    return BadRequest("Email id not found");
+                }
+                string resPassword = res.password;
+                if (!res.password.Equals(password))
+                {
+                    return BadRequest("Invalid password");
+                }
+                return Ok(res);
+
             }
         }
 
@@ -111,18 +160,6 @@ namespace NISA.Api.Controllers
             }
         }
 
-        [HttpDelete]
-        [Route("/User/{userId:int}")]
-        public async Task<IActionResult> DeleteUser([FromRoute] int userId)
-        {
-            //var res = dbconn.userDetails.FirstOrDefault(x => x.id == id);
-            //res.isActive = false;
-            var res = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
-            dbconn.userDetails.Remove(res);
-            await dbconn.SaveChangesAsync();
-
-            return Ok(res);
-        }
         
     }
 }

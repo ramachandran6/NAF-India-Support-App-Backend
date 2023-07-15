@@ -13,7 +13,7 @@ namespace NISA.Model
         [ForeignKey("userId")]
         public virtual UserDetails UserDetails { set; get; }
         public int id { set; get; }
-        public IList<TicketHistoryTable> TicketHistoryTables { get; } = new List<TicketHistoryTable>();
+        //public IList<TicketHistoryTable> TicketHistoryTables { get; } = new List<TicketHistoryTable>();
         public string? ticketRefnum { set; get; }
         public string? title { set; get; }
         public string? description { set; get; }
@@ -33,6 +33,7 @@ namespace NISA.Model
         public int? age { set; get; }
         public string? attachments { set; get; }
         public bool? isDeleted { set; get; }
+        public bool? isReopened {  set; get; }
 
     }
 }

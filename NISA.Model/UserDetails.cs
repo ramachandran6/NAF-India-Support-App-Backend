@@ -17,11 +17,12 @@ namespace NISA.Model
         public string? email { get; set; }
         public string? password { get; set; }
         public bool? isActive { get; set; }
+        public bool? isLoggedIn { get; set; }
         [Display(Name = "LookUpTable")]
         public virtual int? departmentLookupRefId { get; set; }
         [ForeignKey("departmentLookupRefId")]
         public virtual LookUpTable? LookUpTables { get; set; }
         public string? phoneNumber { get; set; }
-        public IList<TicketDetails> TicketDetails { get; } = new List<TicketDetails>();
+        //public IList<TicketDetails> TicketDetails { get; } = new List<TicketDetails>();
     }
 }

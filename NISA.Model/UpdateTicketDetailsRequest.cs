@@ -13,5 +13,6 @@ namespace NISA.Model
         public int? priority { set; get; }
         public int? severity { set; get; }
         public string? attachments { set; get; }
+        public string? status { set; get; }
     }
 }
