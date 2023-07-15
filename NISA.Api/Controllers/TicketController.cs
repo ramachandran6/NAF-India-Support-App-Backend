@@ -26,10 +26,10 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
-        [Route("/TicketDetails/{id:int}")]
-        public async Task<IActionResult> GetTicketDetailsById([FromRoute] int id)
+        [Route("/TicketDetailsByRef/{ticketRefnum}")]
+        public async Task<IActionResult> GetTicketDetailsById([FromRoute] string ticketRefnum)
         {
-            return Ok(await dbconn.ticketDetails.FirstOrDefaultAsync(x => x.id == id && x.isDeleted == false));
+            return Ok(dbconn.ticketDetails.Where(x => x.ticketRefnum.Equals(ticketRefnum) && x.isDeleted == false).ToList());
         }
 
         [HttpPost]
@@ -273,9 +273,13 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
-        [Route("/TicketDetails/{status}")]
+        [Route("/TicketDetailsByStatus/{status}")]
         public async Task<IActionResult> GetByStatus([FromRoute] string status)
         {
+            if (status.Equals("all"))
+            {
+                return Ok(dbconn.ticketDetails.Where(x=> x.isDeleted == false).ToList());
+            }
             //int statusLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(status)).id;
             //var res = dbconn.ticketDetails.Where(x=> x.statusLookUpRefId == statusLookUpId).ToList();
             var res = dbconn.ticketDetails.Where(x=> x.status == status && x.isDeleted == false);
