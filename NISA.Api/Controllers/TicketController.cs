@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
 
@@ -99,6 +100,22 @@ namespace NISA.Api.Controllers
 
                 await dbconn.ticketDetails.AddAsync(td);
                 await dbconn.SaveChangesAsync();
+                //For sending Confirmation Mail
+                UserDetails userDetails = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                email.To.Add(MailboxAddress.Parse(userDetails.email));
+                email.Subject = "Confirmation mail for ticket creation";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = "<h6> Hi " + userDetails.name + " </h6> <br> " + "Your ticket reference number is " + td.ticketRefnum + "<br>" + "Your ticket assigned to : "
+                };
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
 
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = td.ticketRefnum;
