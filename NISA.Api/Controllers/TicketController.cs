@@ -100,6 +100,7 @@ namespace NISA.Api.Controllers
 
                 await dbconn.ticketDetails.AddAsync(td);
                 await dbconn.SaveChangesAsync();
+
                 //For sending Confirmation Mail
                 UserDetails userDetails = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
                 var email = new MimeMessage();
@@ -108,7 +109,7 @@ namespace NISA.Api.Controllers
                 email.Subject = "Confirmation mail for ticket creation";
                 email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
-                    Text = "<h6> Hi " + userDetails.name + " </h6> <br> " + "Your ticket reference number is " + td.ticketRefnum + "<br>" + "Your ticket assigned to : "
+                    Text = " Hi " + userDetails.name + " <br> " + "Your ticket reference number is " + td.ticketRefnum + "<br>" + "Your ticket is assigned to : "+td.owner
                 };
                 using var smtp = new MailKit.Net.Smtp.SmtpClient();
                 smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
