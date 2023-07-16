@@ -4,6 +4,7 @@ using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NISA.Api.Controllers
 {
@@ -124,6 +125,61 @@ namespace NISA.Api.Controllers
 
             }
         }
+        //Forget Password otp sending
+        [HttpGet]
+        [Route("/forgetPassword/{userId}")]
+        public async Task<IActionResult> ForgetPassword([FromRoute] int userId)
+        {
+            var userDetails = await dbconn.userDetails.FirstOrDefaultAsync(x=> x.id.Equals(userId));
+            
+            Random rnd = new Random();
+            var otp = rnd.Next(1111, 9999);
+
+            //Send otp through mail;
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+            email.To.Add(MailboxAddress.Parse(userDetails.email));
+            email.Subject = "Sending verification code for your changing your account password";
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = " Hi " + userDetails.name + "  <br> " + "Otp generated for changing your password is : " + otp+ "<br>Don't share this to anyone" 
+            };
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+            smtp.Send(email);
+            smtp.Disconnect(true);
+
+
+            return Ok(otp);
+        }
+
+        //change password
+        [HttpPut]
+        [Route("/changePassword/{userId}")]
+        public async Task<IActionResult> UpdatePassword([FromRoute] int userId, string newPassword)
+        {
+            if (newPassword == null)
+            {
+                return BadRequest("enter valid password");
+            }
+            else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
+                res.password = newPassword;             
+                dbconn.userDetails.Update(res);
+                await dbconn.SaveChangesAsync();
+                return Ok(res);
+            }
+        }
+
+
+
+
+
+
+
+
 
         public static int CountDigits(int number)
         {
