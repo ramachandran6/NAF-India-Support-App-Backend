@@ -59,8 +59,22 @@ namespace NISA.Api.Controllers
 
                 await dbconn.userDetails.AddAsync(ud);
                 await dbconn.SaveChangesAsync();
-                
+
                 //SendEmail(ud);
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                email.To.Add(MailboxAddress.Parse(ud.email));
+                email.Subject = "Confirmation mail for ticket creation";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password
+                };
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
 
                 return Ok(ud);
             }
