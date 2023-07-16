@@ -27,7 +27,7 @@ namespace NISA.Model
         public string? endDate { set; get; }
         public string? owner { set; get; }
         public string? status { set; get; }
-        public int? priotity { set; get; }
+        public int? priority { set; get; }
         public int? severity { set; get; }
         public int assignedTo { set; get; }
         public int? age { set; get; }

@@ -63,7 +63,7 @@ namespace NISA.Api.Controllers
                 td.endDate = itr.endDate;
                 td.startDate = itr.startDate;
                 int lookupid = (int)dbconn.userDetails.FirstOrDefault(x => x.id == userId).departmentLookupRefId;
-                td.priotity = itr.priority;
+                td.priority = itr.priority;
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
@@ -103,7 +103,7 @@ namespace NISA.Api.Controllers
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = td.ticketRefnum;
                 ticketHistory.status = td.status;
-                ticketHistory.priority = td.priotity;
+                ticketHistory.priority = td.priority;
                 ticketHistory.severity = td.severity;
                 ticketHistory.departmentLookUpRefId = td.departmentLookUpId;
                 ticketHistory.attachments = td.attachments;
@@ -156,7 +156,7 @@ namespace NISA.Api.Controllers
                 DateTime dt2 = DateTime.Parse(res.endDate);
                 res.age = (int?)(dt2 - date).TotalDays;
 
-                res.priotity = updateRequest.priority == 0 ? res.priotity : updateRequest.priority;
+                res.priority = updateRequest.priority == 0 ? res.priority : updateRequest.priority;
                 res.severity = updateRequest.severity == 0 ? res.severity : updateRequest.severity;
                 res.attachments = string.IsNullOrEmpty(updateRequest.attachments) ? res.attachments : updateRequest.attachments;
                 res.status = string.IsNullOrEmpty(updateRequest.status) ? res.status : updateRequest.status;
@@ -174,7 +174,7 @@ namespace NISA.Api.Controllers
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = res.ticketRefnum;
                 ticketHistory.status = res.status;
-                ticketHistory.priority = res.priotity;
+                ticketHistory.priority = res.priority;
                 ticketHistory.severity = res.severity;
                 ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
                 ticketHistory.attachments = res.attachments;
@@ -257,7 +257,7 @@ namespace NISA.Api.Controllers
             TicketHistoryTable ticketHistory = new TicketHistoryTable();
             ticketHistory.ticketRefNum = res.ticketRefnum;
             ticketHistory.status = "deleted";
-            ticketHistory.priority = res.priotity;
+            ticketHistory.priority = res.priority;
             ticketHistory.severity = res.severity;
             ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
             ticketHistory.attachments = res.attachments;
