@@ -82,7 +82,7 @@ namespace NISA.DataAccessLayer.Migrations
                     endDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     owner = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    priotity = table.Column<int>(type: "int", nullable: true),
+                    priority = table.Column<int>(type: "int", nullable: true),
                     severity = table.Column<int>(type: "int", nullable: true),
                     assignedTo = table.Column<int>(type: "int", nullable: false),
                     age = table.Column<int>(type: "int", nullable: true),
