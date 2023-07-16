@@ -5,6 +5,7 @@ using NISA.DataAccessLayer;
 using NISA.Model;
 using System;
 using System.ComponentModel.DataAnnotations;
+using static System.Net.WebRequestMethods;
 
 namespace NISA.Api.Controllers
 {
@@ -68,7 +69,7 @@ namespace NISA.Api.Controllers
                 email.Subject = "Confirmation mail for account creation";
                 email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
-                    Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password
+                    Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password +"<br> <br> <br> Naf India Support team "
                 };
                 using var smtp = new MailKit.Net.Smtp.SmtpClient();
                 smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -142,7 +143,7 @@ namespace NISA.Api.Controllers
             email.Subject = "Sending verification code for your changing your account password";
             email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
-                Text = " Hi " + userDetails.name + "  <br> " + "Otp generated for changing your password is : " + otp+ "<br>Don't share this to anyone" 
+                Text = " Hi " + userDetails.name + "  <br> " + "Otp generated for changing your password is : " + otp+ "<br>Don't share this to anyone <br> <br> <br> Naf India Support team "
             };
             using var smtp = new MailKit.Net.Smtp.SmtpClient();
             smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -169,6 +170,22 @@ namespace NISA.Api.Controllers
                 res.password = newPassword;             
                 dbconn.userDetails.Update(res);
                 await dbconn.SaveChangesAsync();
+
+                //Send password change confirmation mail
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                email.To.Add(MailboxAddress.Parse(res.email));
+                email.Subject = "Sending password change confirmation mail";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = " Hi " + res.name + "  <br> Your password is successfully changed <br> <br> <br> Naf India Support team "
+                };
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
                 return Ok(res);
             }
         }
