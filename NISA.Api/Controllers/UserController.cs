@@ -64,7 +64,7 @@ namespace NISA.Api.Controllers
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
                 email.To.Add(MailboxAddress.Parse(ud.email));
-                email.Subject = "Confirmation mail for ticket creation";
+                email.Subject = "Confirmation mail for account creation";
                 email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
                     Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password
