@@ -164,10 +164,10 @@ namespace NISA.Api.Controllers
             
         }
 
-        //change password
+        //change password using otp
         [HttpPut]
-        [Route("/changePassword/{userEmail}")]
-        public async Task<IActionResult> UpdatePassword([FromRoute] string userEmail, string newPassword)
+        [Route("/changePasswordUsingOtp/{userEmail}")]
+        public async Task<IActionResult> UpdatePasswordUsingOtp([FromRoute] string userEmail, string newPassword)
         {
             if (newPassword == null)
             {
@@ -201,6 +201,59 @@ namespace NISA.Api.Controllers
             }
         }
 
+        // Change password from existing password
+        [HttpPut]
+        [Route("/changePasswordUsingExistingPassword/{userEmail}")]
+        public async Task<IActionResult> UpdatePasswordUsingExistingPassword([FromRoute] string userEmail,UpdatePasswordFromExistingPassword passwordDetails)
+        {
+            if (passwordDetails.newPassword == null)
+            {
+                return BadRequest("enter valid password");
+            }
+            else if (userEmail == null)
+            {
+                return BadRequest("enter valid email");
+            }
+            else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x => x.email == userEmail);
+                if(res.password != passwordDetails.oldPassword)
+                {
+                    return BadRequest("Old password is wrong");
+                }else if(passwordDetails.newPassword != passwordDetails.confirmNewPassword)
+                {
+                    return BadRequest("entered new password and confirm new password does not match");
+                }
+                else
+                {
+                    res.password = passwordDetails.newPassword;
+                    dbconn.userDetails.Update(res);
+                    await dbconn.SaveChangesAsync();
+
+                    //Send password change confirmation mail
+                    var email = new MimeMessage();
+                    email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                    email.To.Add(MailboxAddress.Parse(res.email));
+                    email.Subject = "Sending password change confirmation mail";
+                    email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                    {
+                        Text = " Hi " + res.name + "  <br> Your password is successfully changed <br> <br> <br> Naf India Support team "
+                    };
+                    using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                    smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                    smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                    smtp.Send(email);
+                    smtp.Disconnect(true);
+
+                    return Ok(res);
+
+
+                }
+
+
+                
+            }
+        }
 
 
 
