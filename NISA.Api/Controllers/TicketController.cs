@@ -60,6 +60,7 @@ namespace NISA.Api.Controllers
                 td.title = itr.title;
                 td.description = itr.description;
                 td.createdBy = dbconn.userDetails.FirstOrDefault(x => x.id == userId).name;
+                td.department = itr.toDepartment;
                 td.departmentLookUpId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(itr.toDepartment)).id;
                 td.endDate = itr.endDate;
                 td.startDate = itr.startDate;
@@ -122,6 +123,7 @@ namespace NISA.Api.Controllers
                 ticketHistory.status = td.status;
                 ticketHistory.priority = td.priority;
                 ticketHistory.severity = td.severity;
+                ticketHistory.department = td.department;
                 ticketHistory.departmentLookUpRefId = td.departmentLookUpId;
                 ticketHistory.attachments = td.attachments;
                 ticketHistory.endDate = td.endDate;
@@ -167,6 +169,7 @@ namespace NISA.Api.Controllers
             {
                 var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
 
+                res.department = string.IsNullOrEmpty(updateRequest.toDepartment) ? res.department : updateRequest.toDepartment;
                 res.departmentLookUpId = string.IsNullOrEmpty(updateRequest.toDepartment) ? res.departmentLookUpId : dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(updateRequest.toDepartment)).id;
                 res.endDate = string.IsNullOrEmpty(updateRequest.endDate)?res.endDate : updateRequest.endDate;
                 DateTime date = DateTime.Today;
@@ -193,6 +196,7 @@ namespace NISA.Api.Controllers
                 ticketHistory.status = res.status;
                 ticketHistory.priority = res.priority;
                 ticketHistory.severity = res.severity;
+                ticketHistory.department = res.department;
                 ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
                 ticketHistory.attachments = res.attachments;
                 ticketHistory.endDate = DateTime.Now.ToString();
@@ -276,6 +280,7 @@ namespace NISA.Api.Controllers
             ticketHistory.status = "deleted";
             ticketHistory.priority = res.priority;
             ticketHistory.severity = res.severity;
+            ticketHistory.department = res.department;
             ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
             ticketHistory.attachments = res.attachments;
             ticketHistory.endDate = res.endDate;
@@ -319,6 +324,24 @@ namespace NISA.Api.Controllers
         {
             var res = dbconn.ticketDetails.Where(x => x.departmentLookUpId == dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(department)).id && x.isDeleted == false).ToList();
             return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/TicketDetails/{department}&{status}")]
+        public async Task<IActionResult> GetByDepartmentAndStatus([FromRoute] string department, [FromRoute] string status)
+        {
+            if (status == "all" && department == "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false).ToListAsync());
+            }
+            else if (status == "all" && department != "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.department.Equals(department)).ToListAsync());
+            }
+            else if (status != "all" && department == "all") {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.status.Equals(status)).ToListAsync());
+            }
+            return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
         }
 
         [HttpGet]

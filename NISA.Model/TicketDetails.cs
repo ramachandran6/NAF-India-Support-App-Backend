@@ -18,6 +18,7 @@ namespace NISA.Model
         public string? title { set; get; }
         public string? description { set; get; }
         public string? createdBy { set; get; }
+        public string? department { set; get; }
         [Display(Name = "LookUpTable")]
         public virtual int? departmentLookUpId { get; set; }
         [ForeignKey("departmentLookUpId")]

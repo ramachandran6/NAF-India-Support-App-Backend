@@ -2,11 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using NISA.DataAccessLayer;
 using NISA.Model;
+using System.Data.Common;
 
 namespace NISA.Api.Controllers
 {
     [ApiController]
-    
+
     public class LookUpController : Controller
     {
         public readonly DBContext dbconn;

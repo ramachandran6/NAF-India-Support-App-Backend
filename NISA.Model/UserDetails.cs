@@ -18,6 +18,7 @@ namespace NISA.Model
         public string? password { get; set; }
         public bool? isActive { get; set; }
         public bool? isLoggedIn { get; set; }
+        public string? department { set; get; }
         [Display(Name = "LookUpTable")]
         public virtual int? departmentLookupRefId { get; set; }
         [ForeignKey("departmentLookupRefId")]

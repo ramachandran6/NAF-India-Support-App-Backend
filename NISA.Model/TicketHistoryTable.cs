@@ -15,6 +15,7 @@ namespace NISA.Model
         public string? status { get; set; }
         public int? priority { get; set; }
         public int? severity { get; set; }
+        public string? department { get; set; }
         [Display(Name ="LookUpTable")]
         public virtual int? departmentLookUpRefId { get; set; }
         [ForeignKey("departmentLookUpRefId")]

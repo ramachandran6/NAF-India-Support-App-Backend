@@ -86,7 +86,7 @@ public int id {  get; set; }
 
 
 manage account -> security ->2 step verification - on
-app password generate password
+app password -> generate password
 
 
 font awesome -> send embed kit -> take the icon <i></i> -> replace class with className or icon with className
@@ -111,3 +111,12 @@ font awesome -> send embed kit -> take the icon <i></i> -> replace class with cl
   "age": 3,
   "attachments": "C:\\fakepath\\IMG-20230310-WA0009.jpg",
   "isDeleted": false
+
+
+
+  insert into lookUpTables values('hr','department');
+  insert into lookUpTables values('wpr','department');
+  insert into lookUpTables values('qa','department');
+  insert into lookUpTables values('payroll','department');
+  insert into lookUpTables values('engineering','department');
+  insert into lookUpTables values('user','department');
