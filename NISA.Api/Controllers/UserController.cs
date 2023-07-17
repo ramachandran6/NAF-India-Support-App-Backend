@@ -128,45 +128,56 @@ namespace NISA.Api.Controllers
         }
         //Forget Password otp sending
         [HttpGet]
-        [Route("/forgetPassword/{userId}")]
-        public async Task<IActionResult> ForgetPassword([FromRoute] int userId)
+        [Route("/forgetPassword/{userEmail}")]
+        public async Task<IActionResult> ForgetPassword([FromRoute] string userEmail)
         {
-            var userDetails = await dbconn.userDetails.FirstOrDefaultAsync(x=> x.id.Equals(userId));
-            
-            Random rnd = new Random();
-            var otp = rnd.Next(1111, 9999);
-
-            //Send otp through mail;
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
-            email.To.Add(MailboxAddress.Parse(userDetails.email));
-            email.Subject = "Sending verification code for your changing your account password";
-            email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            var userDetails = await dbconn.userDetails.FirstOrDefaultAsync(x=> x.email.Equals(userEmail));
+            if (userDetails == null)
             {
-                Text = " Hi " + userDetails.name + "  <br> " + "Otp generated for changing your password is : " + otp+ "<br>Don't share this to anyone <br> <br> <br> Naf India Support team "
-            };
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
-            smtp.Send(email);
-            smtp.Disconnect(true);
+                return BadRequest("entered email does not exist");
+            }
+            else
+            {
+                Random rnd = new Random();
+                var otp = rnd.Next(1111, 9999);
+
+                //Send otp through mail;
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                email.To.Add(MailboxAddress.Parse(userDetails.email));
+                email.Subject = "Sending verification code for your changing your account password";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = " Hi " + userDetails.name + "  <br> " + "Otp generated for changing your password is : " + otp + "<br>Don't share this to anyone <br> <br> <br> Naf India Support team "
+                };
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                smtp.Send(email);
+                smtp.Disconnect(true);
 
 
-            return Ok(otp);
+                return Ok(otp);
+
+            }
+            
+            
         }
 
         //change password
         [HttpPut]
-        [Route("/changePassword/{userId}")]
-        public async Task<IActionResult> UpdatePassword([FromRoute] int userId, string newPassword)
+        [Route("/changePassword/{userEmail}")]
+        public async Task<IActionResult> UpdatePassword([FromRoute] string userEmail, string newPassword)
         {
             if (newPassword == null)
             {
                 return BadRequest("enter valid password");
-            }
-            else
+            }else if( userEmail == null)
             {
-                var res = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
+                return BadRequest("enter valid email");
+            }else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x => x.email == userEmail);
                 res.password = newPassword;             
                 dbconn.userDetails.Update(res);
                 await dbconn.SaveChangesAsync();
