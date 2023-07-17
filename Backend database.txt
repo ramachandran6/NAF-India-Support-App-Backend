@@ -86,8 +86,28 @@ public int id {  get; set; }
 
 
 manage account -> security ->2 step verification - on
-app password
+app password generate password
 
 
 font awesome -> send embed kit -> take the icon <i></i> -> replace class with className or icon with className
 	
+
+"userId": 1,
+  "userDetails": null,
+  "id": 1,
+  "ticketRefnum": "Tck0001",
+  "title": "string",
+  "description": "string",
+  "createdBy": "user",
+  "departmentLookUpId": 1,
+  "lookUpTable": null,
+  "startDate": "07/14/2023",
+  "endDate": "2023-07-14",
+  "owner": "depuser2",
+  "status": "completed",
+  "priotity": null,
+  "severity": 3,
+  "assignedTo": 3,
+  "age": 3,
+  "attachments": "C:\\fakepath\\IMG-20230310-WA0009.jpg",
+  "isDeleted": false

@@ -57,6 +57,11 @@ namespace NISA.Api.Controllers
                 ud.isLoggedIn = false;
                 ud.phoneNumber = iur.phoneNumber;
 
+                if(dbconn.userDetails.FirstOrDefault(x=> x.email.Equals(ud.email)) != null)
+                {
+                    return BadRequest("email id already exists");
+                }
+
                 await dbconn.userDetails.AddAsync(ud);
                 await dbconn.SaveChangesAsync();
 
