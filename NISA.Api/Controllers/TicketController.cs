@@ -101,6 +101,7 @@ namespace NISA.Api.Controllers
 
                 await dbconn.ticketDetails.AddAsync(td);
                 await dbconn.SaveChangesAsync();
+
                 //For sending Confirmation Mail
                 UserDetails userDetails = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
                 var email = new MimeMessage();
@@ -109,7 +110,7 @@ namespace NISA.Api.Controllers
                 email.Subject = "Confirmation mail for ticket creation";
                 email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
-                    Text = "<h6> Hi " + userDetails.name + " </h6> <br> " + "Your ticket reference number is " + td.ticketRefnum + "<br>" + "Your ticket assigned to : "
+                    Text = " Hi " + userDetails.name + " <br> " + "Your ticket reference number is " + td.ticketRefnum + "<br>" + "Your ticket is assigned to : "+td.owner  +"<br> <br> <br> Naf India Support team "
                 };
                 using var smtp = new MailKit.Net.Smtp.SmtpClient();
                 smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -259,6 +260,25 @@ namespace NISA.Api.Controllers
 
                 dbconn.ticketDetails.Update(res);
                 await dbconn.SaveChangesAsync();
+
+
+                //For sending Confirmation Mail for ticket reopening
+                
+                UserDetails userDetails = dbconn.userDetails.FirstOrDefault(x => x.id == res.userId);
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
+                email.To.Add(MailboxAddress.Parse(userDetails.email));
+                email.Subject = "Confirmation mail for ticket reopening";
+                email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = " Hi " + userDetails.name + " <br> " + "Your ticket " + res.ticketRefnum + " is successfully reopened <br>" + "Your ticket is assigned to : " + res.owner +"<br> <br> <br> Naf India Support team "
+                };
+                using var smtp = new MailKit.Net.Smtp.SmtpClient();
+                smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                smtp.Authenticate("ellanchikkumar@gmail.com", "aqsptpnjckhgffsb");
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
                 return Ok(res);
 
             }
