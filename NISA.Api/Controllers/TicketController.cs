@@ -27,6 +27,53 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
+        [Route("/TicketDetailsById/{userId:int}")]
+        public async Task<IActionResult> GetTicketDetailsById([FromRoute] int userId)
+        {
+            return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false).ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("/GetCountOfTicketDetailById/{userId:int}")]
+        public async Task<IActionResult> GetCountOfTicketsById([FromRoute] int userId)
+        {
+            if(dbconn.userDetails.FirstOrDefault(x=>x.id == userId) == null)
+            {
+                return NotFound("UserId not found");
+            }
+
+            var tickets = await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false).ToListAsync();
+
+            CountOfTickets cot = new CountOfTickets();
+            cot.assigned = 0;
+            cot.inProgress = 0;
+            cot.pendingForUserInfo = 0;
+            cot.completed = 0;
+            tickets.ForEach((x) =>
+            {
+                if(x.status == "assigned")
+                {
+                    cot.assigned++;
+                }
+                else if(x.status == "inProgress")
+                {
+                    cot.inProgress++;
+                }
+                else if(x.status == "pendingForUserInformation")
+                {
+                    cot.pendingForUserInfo++;
+                }
+                else
+                {
+                    cot.completed++;
+                }
+                
+            });
+            return Ok(cot);
+
+        }
+
+        [HttpGet]
         [Route("/TicketDetailsByRef/{ticketRefnum}")]
         public async Task<IActionResult> GetTicketDetailsById([FromRoute] string ticketRefnum)
         {
@@ -213,8 +260,8 @@ namespace NISA.Api.Controllers
         }
 
         [HttpPut]
-        [Route("/reopenTicket/{ticketId:int}")]
-        public async Task<IActionResult> ReopenTicket([FromRoute] int ticketId,ReopenTicketRequest rtr)
+        [Route("/reopenTicket/{ticketId:int}&{userId:int}")]
+        public async Task<IActionResult> ReopenTicket([FromRoute] int ticketId, [FromRoute] int userId,ReopenTicketRequest rtr)
         {
             if(rtr == null)
             {
@@ -252,7 +299,7 @@ namespace NISA.Api.Controllers
                 {
                     res.assignedTo = user_id;
                 }
-                res.startDate = DateTime.Now.ToString();
+                res.startDate = DateTime.Today.ToString();
                 res.endDate = rtr.endDate;
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
                 res.status = "assigned";
@@ -261,9 +308,20 @@ namespace NISA.Api.Controllers
                 dbconn.ticketDetails.Update(res);
                 await dbconn.SaveChangesAsync();
 
+                TicketHistoryTable ticketHistory = new TicketHistoryTable();
+                ticketHistory.ticketRefNum = res.ticketRefnum;
+                ticketHistory.status = "Re-assigned";
+                ticketHistory.priority = res.priority;
+                ticketHistory.severity = res.severity;
+                ticketHistory.department = res.department;
+                ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
+                ticketHistory.attachments = res.attachments;
+                ticketHistory.endDate = DateTime.Now.ToString();
+                ticketHistory.updatedBy = userId;
+                ticketHistory.updatedOn = DateTime.Now;
 
                 //For sending Confirmation Mail for ticket reopening
-                
+
                 UserDetails userDetails = dbconn.userDetails.FirstOrDefault(x => x.id == res.userId);
                 var email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse("ellanchikkumar@gmail.com"));
