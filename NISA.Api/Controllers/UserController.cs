@@ -40,7 +40,7 @@ namespace NISA.Api.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var token = new JwtSecurityToken(
                     claims: claims,
-                    expires: DateTime.Now.AddHours(1),
+                    expires: DateTime.Now.AddDays(1),
                     signingCredentials: creds
                 );
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
