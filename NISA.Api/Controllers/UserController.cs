@@ -32,8 +32,8 @@ namespace NISA.Api.Controllers
         {
             var a = user.email;
             List<Claim> claims = new List<Claim> {
-                    new Claim(ClaimTypes.Name,user.email),
-                   new Claim(ClaimTypes.Role,dbconn.userDetails.Find(user.id).department)
+                    new Claim(ClaimTypes.Actor,dbconn.userDetails.Find(user.id).department),
+                   new Claim(ClaimTypes.Role,dbconn.userDetails.Find(user.id).role)
                 };
             var key = new SymmetricSecurityKey(Encoding.UTF32.GetBytes(
                 configuration.GetSection("Appsettings:Token").Value!));
@@ -82,12 +82,18 @@ namespace NISA.Api.Controllers
                 ud.email = iur.email;
                 ud.password = iur.password; //encodePassword(iur.password);
                 ud.department = iur.department;
+                ud.role = iur.role;
+                if(dbconn.employeeRoles.FirstOrDefault(x => x.role.Equals(iur.role)) == null)
+                {
+                    return NotFound("role not found");
+                }
+                ud.roleId = dbconn.employeeRoles.FirstOrDefault(x => x.role.Equals(iur.role)).id;
                 ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(iur.department)).id;
                 ud.isActive = true;
                 ud.isLoggedIn = false;
                 ud.phoneNumber = iur.phoneNumber;
 
-                if (dbconn.userDetails.FirstOrDefault(x => x.email.Equals(ud.email)) != null)
+                if (dbconn.userDetails.FirstOrDefault(x => x.email.Equals(ud.email) && x.isActive==true) != null)
                 {
                     return BadRequest("email id already exists");
                 }
@@ -147,15 +153,15 @@ namespace NISA.Api.Controllers
             }
             else
             {
-                var res = dbconn.userDetails.FirstOrDefault(x => x.email.Equals(email));
+                var res = dbconn.userDetails.FirstOrDefault(x => x.email.Equals(email) && x.isActive == true);
                 if (res == null)
                 {
-                    return BadRequest("Email id not found");
+                    return NotFound("Email id not found");
                 }
                 string resPassword = res.password;
                 if (!res.password.Equals(password))
                 {
-                    return BadRequest("Invalid password");
+                    return NotFound("Invalid password");
                 }
                 var a = createtoken(res);
                 JwtModal jwtModal= new JwtModal();

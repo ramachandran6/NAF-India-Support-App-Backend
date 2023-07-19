@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,15 +35,26 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
-        [Route("/TicketDetailsByPriority/{userId:int}")]
-        public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int userId)
+        [Route("/TicketDetailsByPriority/{userId:int}&{order}")]
+        public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int userId, [FromRoute] string order)
         {
-            var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending select ticket;
-            return Ok(res);
+
+            if(order.Equals("ascending"))
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority ascending , ticket.severity ascending select ticket;
+                return Ok(res);
+            }
+            else
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending select ticket;
+                return Ok(res);
+            }
+            //return Ok(res);
         }
 
         [HttpGet]
         [Route("/GetCountOfTicketDetailById/{userId:int}")]
+        //[Authorize(Roles ="admin")]
         public async Task<IActionResult> GetCountOfTicketsById([FromRoute] int userId)
         {
             if(dbconn.userDetails.FirstOrDefault(x=>x.id == userId) == null)

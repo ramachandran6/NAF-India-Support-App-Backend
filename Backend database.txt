@@ -82,7 +82,10 @@ public int id {  get; set; }
         public int? updatedBy { get; set; }
         public string? updatedOn { get; set; }
 
-
+Role table:
+-----------
+int id;
+string role; (head,user,generalUser)
 
 
 manage account -> security ->2 step verification - on
@@ -124,8 +127,10 @@ font awesome -> send embed kit -> take the icon <i></i> -> replace class with cl
 
 
 
-
-
+  insert into employeeRoles values('head');
+   insert into employeeRoles values('user');
+    insert into employeeRoles values('general user');
+ insert into employeeRoles values('admin');
 
 comment: "hello"
 commentedBy: "abc"
@@ -144,3 +149,5 @@ reopen ticket -> make modal
 role based access for api and components
 useContext
 show history table
+
+in viewAllTicket page, make the selected button different (all,assigned,..)

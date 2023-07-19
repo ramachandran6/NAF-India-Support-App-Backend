@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NISA.DataAccessLayer;
 
@@ -11,9 +12,11 @@ using NISA.DataAccessLayer;
 namespace NISA.DataAccessLayer.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20230719124623_migNine")]
+    partial class migNine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,7 +65,7 @@ namespace NISA.DataAccessLayer.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("employeeRoles");
+                    b.ToTable("EmployeeRole");
                 });
 
             modelBuilder.Entity("NISA.Model.LookUpTable", b =>

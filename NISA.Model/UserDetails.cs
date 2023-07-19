@@ -19,6 +19,11 @@ namespace NISA.Model
         public bool? isActive { get; set; }
         public bool? isLoggedIn { get; set; }
         public string? department { set; get; }
+        [Display(Name = "EmployeeRole")]
+        public int? roleId { set; get; }
+        [ForeignKey("roleId")]
+        public virtual EmployeeRole employeeRole { get; set; }
+        public string? role { get; set; }
         [Display(Name = "LookUpTable")]
         public virtual int? departmentLookupRefId { get; set; }
         [ForeignKey("departmentLookupRefId")]
