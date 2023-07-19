@@ -210,9 +210,9 @@ namespace NISA.Api.Controllers
         //change password using otp
         [HttpPut]
         [Route("/changePasswordUsingOtp/{userEmail}")]
-        public async Task<IActionResult> UpdatePasswordUsingOtp([FromRoute] string userEmail, string newPassword)
+        public async Task<IActionResult> UpdatePasswordUsingOtp([FromRoute] string userEmail, ChangePasswordUsingOtp cp)
         {
-            if (newPassword == null)
+            if (cp.newPassword == null)
             {
                 return BadRequest("enter valid password");
             }else if( userEmail == null)
@@ -221,7 +221,7 @@ namespace NISA.Api.Controllers
             }else
             {
                 var res = dbconn.userDetails.FirstOrDefault(x => x.email == userEmail);
-                res.password = newPassword;             
+                res.password = cp.newPassword;             
                 dbconn.userDetails.Update(res);
                 await dbconn.SaveChangesAsync();
 
