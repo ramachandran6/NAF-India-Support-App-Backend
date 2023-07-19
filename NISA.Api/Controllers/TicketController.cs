@@ -33,12 +33,12 @@ namespace NISA.Api.Controllers
             return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false).ToListAsync());
         }
 
-        [HttpGet]
-        [Route("/TicketDetailsByPriority/{userId:int}")]
-        public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int priority)
-        {
-
-        }
+        //[HttpGet]
+        //[Route("/TicketDetailsByPriority/{userId:int}")]
+        //public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int priority)
+        //{
+        //    var res = from ticket in dbconn.ticketDetails
+        //}
 
         [HttpGet]
         [Route("/GetCountOfTicketDetailById/{userId:int}")]
