@@ -1,10 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using static System.Net.WebRequestMethods;
 
 namespace NISA.Api.Controllers
@@ -14,24 +20,45 @@ namespace NISA.Api.Controllers
     public class UserController : Controller
     {
         public readonly DBContext dbconn;
+        public readonly IConfiguration configuration;
 
-        public UserController(DBContext dbconn)
+        public UserController(DBContext dbconn, IConfiguration configuration)
         {
             this.dbconn = dbconn;
+            this.configuration = configuration;
+        }
+
+        private string createtoken(UserDetails user)
+        {
+            var a = user.email;
+            List<Claim> claims = new List<Claim> {
+                    new Claim(ClaimTypes.Name,user.email),
+                   new Claim(ClaimTypes.Role,dbconn.userDetails.Find(user.id).department)
+                };
+            var key = new SymmetricSecurityKey(Encoding.UTF32.GetBytes(
+                configuration.GetSection("Appsettings:Token").Value!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var token = new JwtSecurityToken(
+                    claims: claims,
+                    expires: DateTime.Now.AddHours(1),
+                    signingCredentials: creds
+                );
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
 
         [HttpGet]
         [Route("/User")]
         public async Task<IActionResult> GetUserDetails()
         {
-            return Ok(await dbconn.userDetails.Where(x=> x.isActive == true).ToListAsync());
+            return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
         }
 
         [HttpPost]
         [Route("/User")]
-        public async Task<IActionResult> AddUserDetails(InsertUserDetailsRequest iur) 
+        public async Task<IActionResult> AddUserDetails(InsertUserDetailsRequest iur)
         {
-            
+
             if (iur == null)
             {
                 return BadRequest("enter valid details");
@@ -55,12 +82,12 @@ namespace NISA.Api.Controllers
                 ud.email = iur.email;
                 ud.password = iur.password; //encodePassword(iur.password);
                 ud.department = iur.department;
-                ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(iur.department)).id;
+                ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(iur.department)).id;
                 ud.isActive = true;
                 ud.isLoggedIn = false;
                 ud.phoneNumber = iur.phoneNumber;
 
-                if(dbconn.userDetails.FirstOrDefault(x=> x.email.Equals(ud.email)) != null)
+                if (dbconn.userDetails.FirstOrDefault(x => x.email.Equals(ud.email)) != null)
                 {
                     return BadRequest("email id already exists");
                 }
@@ -75,7 +102,7 @@ namespace NISA.Api.Controllers
                 email.Subject = "Confirmation mail for account creation";
                 email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
-                    Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password +"<br> <br> <br> Naf India Support team "
+                    Text = " Hi " + ud.name + "  <br> " + "Your account has been created <br>" + "Your username is :" + ud.userName + "<br>Your temporary password is :" + ud.password + "<br> <br> <br> Naf India Support team "
                 };
                 using var smtp = new MailKit.Net.Smtp.SmtpClient();
                 smtp.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
@@ -88,8 +115,10 @@ namespace NISA.Api.Controllers
             }
         }
 
+
         [HttpDelete]
         [Route("/User/{userId:int}")]
+        [Authorize (Roles ="admin")]
         public async Task<IActionResult> DeleteUser([FromRoute] int userId)
         {
             var res = await dbconn.userDetails.FirstOrDefaultAsync(x => x.id == userId);
@@ -128,7 +157,15 @@ namespace NISA.Api.Controllers
                 {
                     return BadRequest("Invalid password");
                 }
-                return Ok(res);
+                var a = createtoken(res);
+                JwtModal jwtModal= new JwtModal();
+                jwtModal.email = res.email;
+                jwtModal.id = res.id;
+                jwtModal.name = res.name;
+                jwtModal.Jwt = a;
+                jwtModal.department = res.department;
+               
+                return Ok(jwtModal);
 
             }
         }

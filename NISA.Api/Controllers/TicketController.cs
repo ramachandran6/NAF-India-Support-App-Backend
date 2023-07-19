@@ -34,6 +34,13 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
+        [Route("/TicketDetailsByPriority/{userId:int}")]
+        public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int priority)
+        {
+
+        }
+
+        [HttpGet]
         [Route("/GetCountOfTicketDetailById/{userId:int}")]
         public async Task<IActionResult> GetCountOfTicketsById([FromRoute] int userId)
         {
@@ -168,6 +175,8 @@ namespace NISA.Api.Controllers
 
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = td.ticketRefnum;
+                ticketHistory.title = td.title;
+                ticketHistory.description = td.description;
                 ticketHistory.status = td.status;
                 ticketHistory.priority = td.priority;
                 ticketHistory.severity = td.severity;
@@ -223,7 +232,8 @@ namespace NISA.Api.Controllers
                 DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(res.endDate);
                 res.age = (int?)(dt2 - date).TotalDays;
-
+                res.title = string.IsNullOrEmpty(updateRequest.title) ? res.title : updateRequest.title;
+                res.description = string.IsNullOrEmpty(updateRequest.description) ? res.description : updateRequest.description;
                 res.priority = updateRequest.priority == 0 ? res.priority : updateRequest.priority;
                 res.severity = updateRequest.severity == 0 ? res.severity : updateRequest.severity;
                 res.attachments = string.IsNullOrEmpty(updateRequest.attachments) ? res.attachments : updateRequest.attachments;
@@ -231,7 +241,7 @@ namespace NISA.Api.Controllers
 
                 if(res.status == "completed")
                 {
-                    res.endDate = DateTime.Now.ToString();
+                    res.endDate = DateTime.Now.ToString("MM/dd/yyyy");
                     res.age = 0;
 
                 }
@@ -241,6 +251,8 @@ namespace NISA.Api.Controllers
 
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = res.ticketRefnum;
+                ticketHistory.title = res.title;
+                ticketHistory.description = res.description;
                 ticketHistory.status = res.status;
                 ticketHistory.priority = res.priority;
                 ticketHistory.severity = res.severity;
@@ -257,6 +269,18 @@ namespace NISA.Api.Controllers
                 return Ok(res);
 
             }
+        }
+
+        [HttpPut]
+        [Route("/UpdateDateInTicket/{ticketId:int}")]
+        public async Task<IActionResult> UpdateDate([FromRoute] int ticketId)
+        {
+            var res = dbconn.ticketDetails.FirstOrDefault(x=>x.id == ticketId);
+            DateTime date = DateTime.Today;
+            DateTime dt2 = DateTime.Parse(res.endDate);
+            res.age = (int?)(dt2 - date).TotalDays;
+
+            return Ok(res);
         }
 
         [HttpPut]
@@ -310,7 +334,9 @@ namespace NISA.Api.Controllers
 
                 TicketHistoryTable ticketHistory = new TicketHistoryTable();
                 ticketHistory.ticketRefNum = res.ticketRefnum;
-                ticketHistory.status = "Re-assigned";
+                ticketHistory.title = res.title;
+                ticketHistory.description = res.description;
+                ticketHistory.status = "Re-opened assigned";
                 ticketHistory.priority = res.priority;
                 ticketHistory.severity = res.severity;
                 ticketHistory.department = res.department;
@@ -354,6 +380,8 @@ namespace NISA.Api.Controllers
             await dbconn.SaveChangesAsync();
 
             TicketHistoryTable ticketHistory = new TicketHistoryTable();
+            ticketHistory.title = res.title;
+            ticketHistory.description = res.description;
             ticketHistory.ticketRefNum = res.ticketRefnum;
             ticketHistory.status = "deleted";
             ticketHistory.priority = res.priority;
@@ -422,9 +450,9 @@ namespace NISA.Api.Controllers
             return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
         }
 
-        [HttpGet]
-        [Route("/Escalate/{ticketId:int}")]
-        public async Task<IActionResult> EscalateTicket([FromRoute] int ticketId)
+        [HttpPut]
+        [Route("/Escalate/{ticketId:int}&{userId:int}")]
+        public async Task<IActionResult> EscalateTicket([FromRoute] int ticketId , [FromRoute] int userId)
         {
             var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
             if(res == null)
@@ -458,9 +486,24 @@ namespace NISA.Api.Controllers
                     res.assignedTo = user_id;
                 }
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
+                res.status = "assigned";
 
                 dbconn.ticketDetails.Update(res);
                 await dbconn.SaveChangesAsync();
+
+                TicketHistoryTable ticketHistory = new TicketHistoryTable();
+                ticketHistory.title = res.title;
+                ticketHistory.description = res.description;
+                ticketHistory.ticketRefNum = res.ticketRefnum;
+                ticketHistory.status = "assigned - Escalated";
+                ticketHistory.priority = res.priority;
+                ticketHistory.severity = res.severity;
+                ticketHistory.department = res.department;
+                ticketHistory.departmentLookUpRefId = res.departmentLookUpId;
+                ticketHistory.attachments = res.attachments;
+                ticketHistory.endDate = res.endDate;
+                ticketHistory.updatedBy = userId;
+                ticketHistory.updatedOn = DateTime.Now;
 
                 return Ok(res);
             }

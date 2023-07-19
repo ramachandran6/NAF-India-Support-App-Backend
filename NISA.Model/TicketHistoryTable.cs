@@ -12,6 +12,8 @@ namespace NISA.Model
     {
         public int id {  get; set; }
         public string? ticketRefNum { get; set; }
+        public string title { get; set; }
+        public string description { get; set; }
         public string? status { get; set; }
         public int? priority { get; set; }
         public int? severity { get; set; }

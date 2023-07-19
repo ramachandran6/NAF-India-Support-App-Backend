@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NISA.DataAccessLayer;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,18 @@ builder.Services.AddCors(option =>
 
         }
         ));
+
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(options => {
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF32.GetBytes(
+        builder.Configuration.GetSection("AppSettings:Token").Value!))
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,7 +43,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors();
 app.MapControllers();
