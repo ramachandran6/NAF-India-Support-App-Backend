@@ -12,6 +12,7 @@ namespace NISA.Api.Controllers
 {
     [ApiController]
     [Route("api/[Controller]")]
+
     public class TicketController : Controller
     {
         public readonly DBContext dbconn;
@@ -20,6 +21,7 @@ namespace NISA.Api.Controllers
         {
             this.dbconn = dbconn;
         }
+
 
         [HttpGet]
         [Route("/TicketDetails")]
@@ -137,7 +139,7 @@ namespace NISA.Api.Controllers
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
-                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.departmentLookupRefId.Equals(td.departmentLookUpId) && x.isActive == true).AsQueryable());
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.department.Equals(td.department) && x.isActive == true).AsQueryable());
                 int numOfTickets = int.MaxValue;
                 int user_id = 0;
                 int prev_user_id = 0;
