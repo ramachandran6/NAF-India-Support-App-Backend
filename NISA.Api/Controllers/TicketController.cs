@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
@@ -158,6 +159,10 @@ namespace NISA.Api.Controllers
                 {
                     td.assignedTo = user_id;
                 }
+                if (dbconn.userDetails.FirstOrDefault(x => x.id == td.assignedTo) == null)
+                {
+                    return NotFound("User not found for Assign");
+                }
                 td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == td.assignedTo).name;
                 DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(itr.endDate);
@@ -297,7 +302,7 @@ namespace NISA.Api.Controllers
         }
 
         [HttpPut]
-        [Route("/reopenTicket/{ticketId:int}&{userId:int}")]
+        [Route("/ReopenTicket/{ticketId:int}&{userId:int}")]
         public async Task<IActionResult> ReopenTicket([FromRoute] int ticketId, [FromRoute] int userId,ReopenTicketRequest rtr)
         {
             if(rtr == null)
@@ -336,8 +341,17 @@ namespace NISA.Api.Controllers
                 {
                     res.assignedTo = user_id;
                 }
+                res.title = rtr.title.IsNullOrEmpty() ? res.title : rtr.title;
+                res.description = rtr.description.IsNullOrEmpty() ? res.description : rtr.description;
+                res.priority = rtr.priority == 0 ? res.priority : rtr.priority;
+                res.severity = rtr.severity == 0 ? res.severity : rtr.severity;
                 res.startDate = DateTime.Today.ToString();
                 res.endDate = rtr.endDate;
+                res.attachments = rtr.attachments.IsNullOrEmpty() ? res.attachments : rtr.attachments;
+                if(dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo)==null)
+                {
+                    return NotFound("User not found for Assign");
+                }
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
                 res.status = "assigned";
                 res.isReopened = true;
@@ -497,6 +511,10 @@ namespace NISA.Api.Controllers
                 else
                 {
                     res.assignedTo = user_id;
+                }
+                if (dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo) == null)
+                {
+                    return NotFound("User not found for Assign");
                 }
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
                 res.status = "assigned";

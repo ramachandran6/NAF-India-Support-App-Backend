@@ -54,6 +54,43 @@ namespace NISA.Api.Controllers
             return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
         }
 
+        [HttpGet]
+        [Route("/User/{department}&{role}")]
+        public async Task<IActionResult> GetByDepartmentAndRole([FromRoute] string department, [FromRoute] string role)
+        {
+            if (role == "all" && department == "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
+            }
+            else if (role == "all" && department != "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.department.Equals(department)).ToListAsync());
+            }
+            else if (role != "all" && department == "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.role.Equals(role)).ToListAsync());
+            }
+            return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.role.Equals(role) && x.department.Equals(department)).ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("/UserByUserName/{userName}")]
+        public async Task<IActionResult> GetUserById([FromRoute] string userName)
+        {
+            if (userName.IsNullOrEmpty())
+            {
+                return BadRequest("Enter valid userName");
+            }
+            else
+            {
+                var res = dbconn.userDetails.Where(x => x.userName.Equals(userName)).ToList();
+                if(res == null)
+                {
+                    return NotFound("User notFound");
+                }
+                return Ok(res);
+            }
+        }
         [HttpPost]
         [Route("/User")]
         public async Task<IActionResult> AddUserDetails(InsertUserDetailsRequest iur)
@@ -170,6 +207,7 @@ namespace NISA.Api.Controllers
                 jwtModal.name = res.name;
                 jwtModal.Jwt = a;
                 jwtModal.department = res.department;
+                jwtModal.phoneNumber = res.phoneNumber;
                
                 return Ok(jwtModal);
 

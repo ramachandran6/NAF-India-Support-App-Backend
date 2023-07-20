@@ -145,9 +145,10 @@ ticketRefnum: "Tck0003"
 
 19/07:
 ------
-reopen ticket -> make modal 
+reopen ticket -> make modal - done
 role based access for api and components
-useContext
+useContext -done
 show history table
 
+while reopening ticket it not updating
 in viewAllTicket page, make the selected button different (all,assigned,..)
