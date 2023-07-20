@@ -34,7 +34,7 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options => {
 });
 
 var app = builder.Build();
-
+app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

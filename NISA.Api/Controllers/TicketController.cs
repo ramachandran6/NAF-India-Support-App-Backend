@@ -1,7 +1,9 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
@@ -10,6 +12,7 @@ namespace NISA.Api.Controllers
 {
     [ApiController]
     [Route("api/[Controller]")]
+
     public class TicketController : Controller
     {
         public readonly DBContext dbconn;
@@ -18,6 +21,7 @@ namespace NISA.Api.Controllers
         {
             this.dbconn = dbconn;
         }
+
 
         [HttpGet]
         [Route("/TicketDetails")]
@@ -33,15 +37,27 @@ namespace NISA.Api.Controllers
             return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false).ToListAsync());
         }
 
-        //[HttpGet]
-        //[Route("/TicketDetailsByPriority/{userId:int}")]
-        //public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int priority)
-        //{
-        //    var res = from ticket in dbconn.ticketDetails
-        //}
+        [HttpGet]
+        [Route("/TicketDetailsByPriority/{userId:int}&{order}")]
+        public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int userId, [FromRoute] string order)
+        {
+
+            if(order.Equals("ascending"))
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority ascending , ticket.severity ascending select ticket;
+                return Ok(res);
+            }
+            else
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending select ticket;
+                return Ok(res);
+            }
+            //return Ok(res);
+        }
 
         [HttpGet]
         [Route("/GetCountOfTicketDetailById/{userId:int}")]
+        //[Authorize(Roles ="admin")]
         public async Task<IActionResult> GetCountOfTicketsById([FromRoute] int userId)
         {
             if(dbconn.userDetails.FirstOrDefault(x=>x.id == userId) == null)
@@ -123,7 +139,7 @@ namespace NISA.Api.Controllers
                 td.severity = itr.severity;
                 td.attachments = itr.attachments;
                 td.status = "assigned";
-                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.departmentLookupRefId.Equals(td.departmentLookUpId) && x.isActive == true).AsQueryable());
+                List<UserDetails> tckHandlers = new List<UserDetails>(dbconn.userDetails.Where(x => x.department.Equals(td.department) && x.isActive == true).AsQueryable());
                 int numOfTickets = int.MaxValue;
                 int user_id = 0;
                 int prev_user_id = 0;
@@ -144,6 +160,10 @@ namespace NISA.Api.Controllers
                 else
                 {
                     td.assignedTo = user_id;
+                }
+                if (dbconn.userDetails.FirstOrDefault(x => x.id == td.assignedTo) == null)
+                {
+                    return NotFound("User not found for Assign");
                 }
                 td.owner = dbconn.userDetails.FirstOrDefault(x => x.id == td.assignedTo).name;
                 DateTime date = DateTime.Today;
@@ -284,7 +304,7 @@ namespace NISA.Api.Controllers
         }
 
         [HttpPut]
-        [Route("/reopenTicket/{ticketId:int}&{userId:int}")]
+        [Route("/ReopenTicket/{ticketId:int}&{userId:int}")]
         public async Task<IActionResult> ReopenTicket([FromRoute] int ticketId, [FromRoute] int userId,ReopenTicketRequest rtr)
         {
             if(rtr == null)
@@ -323,8 +343,17 @@ namespace NISA.Api.Controllers
                 {
                     res.assignedTo = user_id;
                 }
+                res.title = rtr.title.IsNullOrEmpty() ? res.title : rtr.title;
+                res.description = rtr.description.IsNullOrEmpty() ? res.description : rtr.description;
+                res.priority = rtr.priority == 0 ? res.priority : rtr.priority;
+                res.severity = rtr.severity == 0 ? res.severity : rtr.severity;
                 res.startDate = DateTime.Today.ToString();
                 res.endDate = rtr.endDate;
+                res.attachments = rtr.attachments.IsNullOrEmpty() ? res.attachments : rtr.attachments;
+                if(dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo)==null)
+                {
+                    return NotFound("User not found for Assign");
+                }
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
                 res.status = "assigned";
                 res.isReopened = true;
@@ -484,6 +513,10 @@ namespace NISA.Api.Controllers
                 else
                 {
                     res.assignedTo = user_id;
+                }
+                if (dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo) == null)
+                {
+                    return NotFound("User not found for Assign");
                 }
                 res.owner = dbconn.userDetails.FirstOrDefault(x => x.id == res.assignedTo).name;
                 res.status = "assigned";

@@ -12,6 +12,7 @@ namespace NISA.Model
         public string? email { get; set; }
         public string? password { get; set; }
         public string? department { get; set; }
+        public string? role { get; set; }
         public string? phoneNumber { get; set; }
     }
 }

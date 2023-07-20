@@ -82,7 +82,10 @@ public int id {  get; set; }
         public int? updatedBy { get; set; }
         public string? updatedOn { get; set; }
 
-
+Role table:
+-----------
+int id;
+string role; (head,user,generalUser)
 
 
 manage account -> security ->2 step verification - on
@@ -124,8 +127,10 @@ font awesome -> send embed kit -> take the icon <i></i> -> replace class with cl
 
 
 
-
-
+  insert into employeeRoles values('head');
+   insert into employeeRoles values('user');
+    insert into employeeRoles values('general user');
+ insert into employeeRoles values('admin');
 
 comment: "hello"
 commentedBy: "abc"
@@ -140,7 +145,10 @@ ticketRefnum: "Tck0003"
 
 19/07:
 ------
-reopen ticket -> make modal 
+reopen ticket -> make modal - done
 role based access for api and components
-useContext
+useContext -done
 show history table
+
+while reopening ticket it not updating
+in viewAllTicket page, make the selected button different (all,assigned,..)

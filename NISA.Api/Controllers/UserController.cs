@@ -32,15 +32,15 @@ namespace NISA.Api.Controllers
         {
             var a = user.email;
             List<Claim> claims = new List<Claim> {
-                    new Claim(ClaimTypes.Name,user.email),
-                   new Claim(ClaimTypes.Role,dbconn.userDetails.Find(user.id).department)
+                    new Claim(ClaimTypes.Actor,dbconn.userDetails.Find(user.id).department),
+                   new Claim(ClaimTypes.Role,dbconn.userDetails.Find(user.id).role)
                 };
             var key = new SymmetricSecurityKey(Encoding.UTF32.GetBytes(
                 configuration.GetSection("Appsettings:Token").Value!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var token = new JwtSecurityToken(
                     claims: claims,
-                    expires: DateTime.Now.AddHours(1),
+                    expires: DateTime.Now.AddDays(1),
                     signingCredentials: creds
                 );
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
@@ -54,6 +54,43 @@ namespace NISA.Api.Controllers
             return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
         }
 
+        [HttpGet]
+        [Route("/User/{department}&{role}")]
+        public async Task<IActionResult> GetByDepartmentAndRole([FromRoute] string department, [FromRoute] string role)
+        {
+            if (role == "all" && department == "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
+            }
+            else if (role == "all" && department != "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.department.Equals(department)).ToListAsync());
+            }
+            else if (role != "all" && department == "all")
+            {
+                return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.role.Equals(role)).ToListAsync());
+            }
+            return Ok(await dbconn.userDetails.Where(x => x.isActive == true && x.role.Equals(role) && x.department.Equals(department)).ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("/UserByUserName/{userName}")]
+        public async Task<IActionResult> GetUserById([FromRoute] string userName)
+        {
+            if (userName.IsNullOrEmpty())
+            {
+                return BadRequest("Enter valid userName");
+            }
+            else
+            {
+                var res = dbconn.userDetails.Where(x => x.userName.Equals(userName)).ToList();
+                if(res == null)
+                {
+                    return NotFound("User notFound");
+                }
+                return Ok(res);
+            }
+        }
         [HttpPost]
         [Route("/User")]
         public async Task<IActionResult> AddUserDetails(InsertUserDetailsRequest iur)
@@ -82,12 +119,18 @@ namespace NISA.Api.Controllers
                 ud.email = iur.email;
                 ud.password = iur.password; //encodePassword(iur.password);
                 ud.department = iur.department;
+                ud.role = iur.role;
+                if(dbconn.employeeRoles.FirstOrDefault(x => x.role.Equals(iur.role)) == null)
+                {
+                    return NotFound("role not found");
+                }
+                ud.roleId = dbconn.employeeRoles.FirstOrDefault(x => x.role.Equals(iur.role)).id;
                 ud.departmentLookupRefId = dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(iur.department)).id;
                 ud.isActive = true;
                 ud.isLoggedIn = false;
                 ud.phoneNumber = iur.phoneNumber;
 
-                if (dbconn.userDetails.FirstOrDefault(x => x.email.Equals(ud.email)) != null)
+                if (dbconn.userDetails.FirstOrDefault(x => x.email.Equals(ud.email) && x.isActive==true) != null)
                 {
                     return BadRequest("email id already exists");
                 }
@@ -147,15 +190,15 @@ namespace NISA.Api.Controllers
             }
             else
             {
-                var res = dbconn.userDetails.FirstOrDefault(x => x.email.Equals(email));
+                var res = dbconn.userDetails.FirstOrDefault(x => x.email.Equals(email) && x.isActive == true);
                 if (res == null)
                 {
-                    return BadRequest("Email id not found");
+                    return NotFound("Email id not found");
                 }
                 string resPassword = res.password;
                 if (!res.password.Equals(password))
                 {
-                    return BadRequest("Invalid password");
+                    return NotFound("Invalid password");
                 }
                 var a = createtoken(res);
                 JwtModal jwtModal= new JwtModal();
@@ -164,6 +207,7 @@ namespace NISA.Api.Controllers
                 jwtModal.name = res.name;
                 jwtModal.Jwt = a;
                 jwtModal.department = res.department;
+                jwtModal.phoneNumber = res.phoneNumber;
                
                 return Ok(jwtModal);
 
