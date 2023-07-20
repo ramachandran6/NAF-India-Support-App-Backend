@@ -206,6 +206,7 @@ namespace NISA.Api.Controllers
                 jwtModal.id = res.id;
                 jwtModal.name = res.name;
                 jwtModal.Jwt = a;
+                jwtModal.role = res.role;
                 jwtModal.department = res.department;
                 jwtModal.phoneNumber = res.phoneNumber;
                
