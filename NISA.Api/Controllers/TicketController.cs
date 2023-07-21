@@ -46,6 +46,24 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
+        [Route("/AllTicketDetailsByPriority/{order}")]
+        public async Task<IActionResult> GetAllTicketDetailsByPriority([FromRoute] string order)
+        {
+
+            if (order.Equals("ascending"))
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority ascending, ticket.severity ascending where ticket.isDeleted == false select ticket;
+                return Ok(res);
+            }
+            else
+            {
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending where ticket.isDeleted == false select ticket;
+                return Ok(res);
+            }
+            //return Ok(res);
+        }
+
+        [HttpGet]
         [Route("/TicketDetailsByPriority/{userId:int}&{order}")]
         public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int userId, [FromRoute] string order)
         {
@@ -104,6 +122,12 @@ namespace NISA.Api.Controllers
 
         }
 
+        [HttpGet]
+        [Route("/AllTicketDetailsByRef/{ticketRefnum}")]
+        public async Task<IActionResult> GetAllTicketDetailsById([FromRoute] string ticketRefnum)
+        {
+            return Ok(dbconn.ticketDetails.Where(x =>  x.ticketRefnum.Equals(ticketRefnum) && x.isDeleted == false).ToList());
+        }
 
         [HttpGet]
         [Route("/TicketDetailsByRef/{ticketRefnum}&{userId:int}")]
@@ -471,12 +495,66 @@ namespace NISA.Api.Controllers
 
 
         [HttpGet]
-        [Route("/TicketDetails/{department}")]
-        [Authorize(Roles = "head")]
-        public async Task<IActionResult> GetById([FromRoute] string department)
+        [Route("/DepartmentTicketDetails/{department}")]
+        //[Authorize(Roles = "head")]
+        public async Task<IActionResult> GetDetailsByDepartment([FromRoute] string department)
         {
-            var res = dbconn.ticketDetails.Where(x => x.departmentLookUpId == dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(department)).id && x.isDeleted == false).ToList();
+            var res = dbconn.ticketDetails.Where(x => x.department == department && x.isDeleted == false).ToList();
             return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/AllTicketDetails/{department}&{status}")]
+        public async Task<IActionResult> GetAllTicketByDepartmentAndStatus([FromRoute] string department, [FromRoute] string status)
+        {
+            if (status == "all" && department == "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false).ToListAsync());
+            }
+            else if (status == "all" && department != "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.department.Equals(department)).ToListAsync());
+            }
+            else if (status != "all" && department == "all")
+            {
+                if (status.Equals("reopened"))
+                {
+                    return Ok(await dbconn.ticketDetails.Where(x => x.isReopened == true && x.isDeleted == false).ToListAsync());
+                }
+                else return Ok(await dbconn.ticketDetails.Where(x => x.isReopened == false && x.isDeleted == false && x.status.Equals(status)).ToListAsync());
+            }
+            if (status.Equals("reopened"))
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.isReopened == true && x.department.Equals(department)).ToListAsync());
+            }
+            return Ok(await dbconn.ticketDetails.Where(x => x.isReopened == false && x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("/DepartmentTicketDetails/{department}&{status}&{headDepartment}")]
+        public async Task<IActionResult> GetDepartmentTicketsByDepartmentAndStatus([FromRoute] string department, [FromRoute] string status, [FromRoute] string headDepartment)
+        {
+            if (status == "all" && department == "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isDeleted == false).ToListAsync());
+            }
+            else if (status == "all" && department != "all")
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isDeleted == false && x.department.Equals(department)).ToListAsync());
+            }
+            else if (status != "all" && department == "all")
+            {
+                if (status.Equals("reopened"))
+                {
+                    return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isReopened == true && x.isDeleted == false).ToListAsync());
+                }
+                else return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isReopened == false && x.isDeleted == false && x.status.Equals(status)).ToListAsync());
+            }
+            if (status.Equals("reopened"))
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isDeleted == false && x.isReopened == true && x.department.Equals(department)).ToListAsync());
+            }
+            return Ok(await dbconn.ticketDetails.Where(x => x.department.Equals(headDepartment) && x.isReopened == false && x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
         }
 
         [HttpGet]
