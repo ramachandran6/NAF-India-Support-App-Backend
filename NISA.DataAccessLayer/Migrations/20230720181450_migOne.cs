@@ -28,6 +28,37 @@ namespace NISA.DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "employeeRoles",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    role = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_employeeRoles", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "imageEntities",
+                columns: table => new
+                {
+                    ImageId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ContentType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageData = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    isActive = table.Column<bool>(type: "bit", nullable: true),
+                    ticketId = table.Column<int>(type: "int", nullable: true),
+                    uploadedDate = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_imageEntities", x => x.ImageId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "lookUpTables",
                 columns: table => new
                 {
@@ -42,6 +73,22 @@ namespace NISA.DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ticketComments",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ticketRefnum = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    comment = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    commentedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    commentedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ticketComments", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "userDetails",
                 columns: table => new
                 {
@@ -53,12 +100,20 @@ namespace NISA.DataAccessLayer.Migrations
                     password = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     isActive = table.Column<bool>(type: "bit", nullable: true),
                     isLoggedIn = table.Column<bool>(type: "bit", nullable: true),
+                    department = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    roleId = table.Column<int>(type: "int", nullable: true),
+                    role = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     departmentLookupRefId = table.Column<int>(type: "int", nullable: true),
                     phoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_userDetails", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_userDetails_employeeRoles_roleId",
+                        column: x => x.roleId,
+                        principalTable: "employeeRoles",
+                        principalColumn: "id");
                     table.ForeignKey(
                         name: "FK_userDetails_lookUpTables_departmentLookupRefId",
                         column: x => x.departmentLookupRefId,
@@ -77,6 +132,7 @@ namespace NISA.DataAccessLayer.Migrations
                     title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     createdBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    department = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     departmentLookUpId = table.Column<int>(type: "int", nullable: true),
                     startDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     endDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -87,7 +143,8 @@ namespace NISA.DataAccessLayer.Migrations
                     assignedTo = table.Column<int>(type: "int", nullable: false),
                     age = table.Column<int>(type: "int", nullable: true),
                     attachments = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    isDeleted = table.Column<bool>(type: "bit", nullable: true)
+                    isDeleted = table.Column<bool>(type: "bit", nullable: true),
+                    isReopened = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -111,9 +168,12 @@ namespace NISA.DataAccessLayer.Migrations
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ticketRefNum = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     priority = table.Column<int>(type: "int", nullable: true),
                     severity = table.Column<int>(type: "int", nullable: true),
+                    department = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     departmentLookUpRefId = table.Column<int>(type: "int", nullable: true),
                     attachments = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     endDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -159,6 +219,11 @@ namespace NISA.DataAccessLayer.Migrations
                 name: "IX_userDetails_departmentLookupRefId",
                 table: "userDetails",
                 column: "departmentLookupRefId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_userDetails_roleId",
+                table: "userDetails",
+                column: "roleId");
         }
 
         /// <inheritdoc />
@@ -168,6 +233,12 @@ namespace NISA.DataAccessLayer.Migrations
                 name: "attachmentDetails");
 
             migrationBuilder.DropTable(
+                name: "imageEntities");
+
+            migrationBuilder.DropTable(
+                name: "ticketComments");
+
+            migrationBuilder.DropTable(
                 name: "ticketDetails");
 
             migrationBuilder.DropTable(
@@ -175,6 +246,9 @@ namespace NISA.DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "userDetails");
+
+            migrationBuilder.DropTable(
+                name: "employeeRoles");
 
             migrationBuilder.DropTable(
                 name: "lookUpTables");

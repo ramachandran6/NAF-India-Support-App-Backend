@@ -12,8 +12,8 @@ using NISA.DataAccessLayer;
 namespace NISA.DataAccessLayer.Migrations
 {
     [DbContext(typeof(DBContext))]
-    [Migration("20230719035854_migEight")]
-    partial class migEight
+    [Migration("20230720181450_migOne")]
+    partial class migOne
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,56 @@ namespace NISA.DataAccessLayer.Migrations
                     b.HasKey("id");
 
                     b.ToTable("attachmentDetails");
+                });
+
+            modelBuilder.Entity("NISA.Model.EmployeeRole", b =>
+                {
+                    b.Property<int?>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("id"));
+
+                    b.Property<string>("role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("employeeRoles");
+                });
+
+            modelBuilder.Entity("NISA.Model.ImageEntity", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("ImageData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool?>("isActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ticketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("uploadedDate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.ToTable("imageEntities");
                 });
 
             modelBuilder.Entity("NISA.Model.LookUpTable", b =>
@@ -185,7 +235,6 @@ namespace NISA.DataAccessLayer.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("endDate")
@@ -204,7 +253,6 @@ namespace NISA.DataAccessLayer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("title")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("updatedBy")
@@ -254,12 +302,20 @@ namespace NISA.DataAccessLayer.Migrations
                     b.Property<string>("phoneNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("roleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("userName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
 
                     b.HasIndex("departmentLookupRefId");
+
+                    b.HasIndex("roleId");
 
                     b.ToTable("userDetails");
                 });
@@ -300,7 +356,13 @@ namespace NISA.DataAccessLayer.Migrations
                         .WithMany()
                         .HasForeignKey("departmentLookupRefId");
 
+                    b.HasOne("NISA.Model.EmployeeRole", "employeeRole")
+                        .WithMany()
+                        .HasForeignKey("roleId");
+
                     b.Navigation("LookUpTables");
+
+                    b.Navigation("employeeRole");
                 });
 #pragma warning restore 612, 618
         }

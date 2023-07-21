@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using MimeKit;
 using NISA.DataAccessLayer;
 using NISA.Model;
+using Org.BouncyCastle.Crypto.Generators;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -52,6 +54,13 @@ namespace NISA.Api.Controllers
         public async Task<IActionResult> GetUserDetails()
         {
             return Ok(await dbconn.userDetails.Where(x => x.isActive == true).ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("/User/{department}")]
+        public async Task<IActionResult> GetUserDetailsByDepartment([FromRoute] string department)
+        {
+            return Ok(await dbconn.userDetails.Where(x => x.role!="head" && x.isActive == true && x.department.Equals(department.ToLower())).ToListAsync());
         }
 
         [HttpGet]
@@ -117,6 +126,8 @@ namespace NISA.Api.Controllers
                 ud.userName = prefix + suffix + suffixnum;
                 ud.name = iur.name;
                 ud.email = iur.email;
+                //ud.password =
+                //       = BCrypt.Net.BCrypt.HashPassword(iur.password);
                 ud.password = iur.password; //encodePassword(iur.password);
                 ud.department = iur.department;
                 ud.role = iur.role;
@@ -158,6 +169,28 @@ namespace NISA.Api.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("/User/{userId:int}")]
+        public async Task<IActionResult> UpdateUserDetails([FromRoute] int userId, UpdateUserDetails updateRequest)
+        {
+            if (updateRequest == null)
+            {
+                return BadRequest("enter valid details");
+            }
+            else
+            {
+                var res = dbconn.userDetails.FirstOrDefault(x => x.id == userId);
+                res.name = string.IsNullOrEmpty(updateRequest.name) ? res.name : updateRequest.name;
+                res.phoneNumber = string.IsNullOrEmpty(updateRequest.phoneNumber) ? res.phoneNumber : updateRequest.phoneNumber;
+                res.role = string.IsNullOrEmpty(updateRequest?.role) ? res.role : updateRequest.role;
+                res.department = string.IsNullOrEmpty(updateRequest?.department) ? res.department : updateRequest.department;
+
+                dbconn.userDetails.Update(res);
+                await dbconn.SaveChangesAsync();
+
+                return Ok(res);
+            }
+        }
 
         [HttpDelete]
         [Route("/User/{userId:int}")]
@@ -343,13 +376,6 @@ namespace NISA.Api.Controllers
             }
         }
 
-
-
-
-
-
-
-
         public static int CountDigits(int number)
         {
             int count = 0;
@@ -378,26 +404,7 @@ namespace NISA.Api.Controllers
         //    //return result;
         //}
 
-        [HttpPut]
-        [Route("/User/{userId:int}")]
-        public async Task<IActionResult> UpdateUserDetails([FromRoute] int userId,UpdateUserDetails updateRequest)
-        {
-            if(updateRequest == null)
-            {
-                return BadRequest("enter valid details");
-            }
-            else
-            {
-                var res = dbconn.userDetails.FirstOrDefault(x=> x.id  == userId);
-                res.name = string.IsNullOrEmpty(updateRequest.name) ? res.name : updateRequest.name;
-                res.phoneNumber = string.IsNullOrEmpty(updateRequest.phoneNumber) ? res.phoneNumber : updateRequest.phoneNumber;
-
-                dbconn.userDetails.Update(res);
-                await dbconn.SaveChangesAsync();
-
-                return Ok(res);
-            }
-        }
+        
 
         
     }

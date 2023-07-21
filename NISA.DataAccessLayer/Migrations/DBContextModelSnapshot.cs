@@ -65,6 +65,40 @@ namespace NISA.DataAccessLayer.Migrations
                     b.ToTable("employeeRoles");
                 });
 
+            modelBuilder.Entity("NISA.Model.ImageEntity", b =>
+                {
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("ImageData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<bool?>("isActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ticketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("uploadedDate")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.ToTable("imageEntities");
+                });
+
             modelBuilder.Entity("NISA.Model.LookUpTable", b =>
                 {
                     b.Property<int>("id")

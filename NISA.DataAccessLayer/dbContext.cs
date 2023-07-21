@@ -14,5 +14,6 @@ namespace NISA.DataAccessLayer
         public DbSet<TicketHistoryTable> ticketHistoryTables { get; set; }
         public DbSet<TicketComments> ticketComments { get; set; }
         public DbSet<EmployeeRole> employeeRoles { get; set; }
+        public DbSet<ImageEntity> imageEntities { get; set; }
     }
 }

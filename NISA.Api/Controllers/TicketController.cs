@@ -22,9 +22,9 @@ namespace NISA.Api.Controllers
             this.dbconn = dbconn;
         }
 
-
         [HttpGet]
         [Route("/TicketDetails")]
+        //[Authorize(Roles = "admin")]
         public async Task<IActionResult> GetTicketDetails()
         {
             return Ok( await dbconn.ticketDetails.Where(x=> x.isDeleted == false).ToListAsync());
@@ -38,18 +38,26 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
+        [Route("/AssignedTicketDetailsById/{userId:int}")]
+        public async Task<IActionResult> GetAssignedTicketDetailsById([FromRoute] int userId)
+        {
+            var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending where ticket.assignedTo == userId && ticket.isDeleted == false select ticket;
+            return Ok(res);
+        }
+
+        [HttpGet]
         [Route("/TicketDetailsByPriority/{userId:int}&{order}")]
         public async Task<IActionResult> GetTicketDetailsByPriority([FromRoute] int userId, [FromRoute] string order)
         {
 
             if(order.Equals("ascending"))
             {
-                var res = from ticket in dbconn.ticketDetails orderby ticket.priority ascending , ticket.severity ascending select ticket;
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority ascending , ticket.severity ascending where ticket.userId == userId && ticket.isDeleted == false select ticket;
                 return Ok(res);
             }
             else
             {
-                var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending select ticket;
+                var res = from ticket in dbconn.ticketDetails orderby ticket.priority descending, ticket.severity descending where ticket.userId == userId && ticket.isDeleted == false select ticket;
                 return Ok(res);
             }
             //return Ok(res);
@@ -96,11 +104,16 @@ namespace NISA.Api.Controllers
 
         }
 
+
         [HttpGet]
-        [Route("/TicketDetailsByRef/{ticketRefnum}")]
-        public async Task<IActionResult> GetTicketDetailsById([FromRoute] string ticketRefnum)
+        [Route("/TicketDetailsByRef/{ticketRefnum}&{userId:int}")]
+        public async Task<IActionResult> GetTicketDetailsById([FromRoute] string ticketRefnum, [FromRoute] int userId)
         {
-            return Ok(dbconn.ticketDetails.Where(x => x.ticketRefnum.Equals(ticketRefnum) && x.isDeleted == false).ToList());
+            if((dbconn.userDetails.FirstOrDefault(x=> x.id == userId).role).Equals("head"))
+            {
+                return Ok(dbconn.ticketDetails.Where(x => (x.userId == userId || (dbconn.userDetails.Find(userId).department == x.department) && x.ticketRefnum.Equals(ticketRefnum) && x.isDeleted == false)).ToList());
+            }
+            return Ok(dbconn.ticketDetails.Where(x => (x.userId == userId || (x.assignedTo == userId && dbconn.userDetails.FirstOrDefault(y=> y.id == x.assignedTo).role == "user" && dbconn.userDetails.FirstOrDefault(y => y.id == x.assignedTo).department == x.department) && x.ticketRefnum.Equals(ticketRefnum) && x.isDeleted == false)).ToList());
         }
 
         [HttpPost]
@@ -244,10 +257,10 @@ namespace NISA.Api.Controllers
             }
             else
             {
+
                 var res = dbconn.ticketDetails.FirstOrDefault(x=> x.id == ticketId);
 
                 res.department = string.IsNullOrEmpty(updateRequest.toDepartment) ? res.department : updateRequest.toDepartment;
-                res.departmentLookUpId = string.IsNullOrEmpty(updateRequest.toDepartment) ? res.departmentLookUpId : dbconn.lookUpTables.FirstOrDefault(x => x.value.Equals(updateRequest.toDepartment)).id;
                 res.endDate = string.IsNullOrEmpty(updateRequest.endDate)?res.endDate : updateRequest.endDate;
                 DateTime date = DateTime.Today;
                 DateTime dt2 = DateTime.Parse(res.endDate);
@@ -257,8 +270,10 @@ namespace NISA.Api.Controllers
                 res.priority = updateRequest.priority == 0 ? res.priority : updateRequest.priority;
                 res.severity = updateRequest.severity == 0 ? res.severity : updateRequest.severity;
                 res.attachments = string.IsNullOrEmpty(updateRequest.attachments) ? res.attachments : updateRequest.attachments;
-                res.status = string.IsNullOrEmpty(updateRequest.status) ? res.status : updateRequest.status;
-
+                if (dbconn.userDetails.FirstOrDefault(x => x.id == userId).role == "user")
+                {
+                    res.status = string.IsNullOrEmpty(updateRequest.status) ? res.status : updateRequest.status;
+                }
                 if(res.status == "completed")
                 {
                     res.endDate = DateTime.Now.ToString("MM/dd/yyyy");
@@ -397,6 +412,7 @@ namespace NISA.Api.Controllers
             }
         }
 
+        [Authorize(Roles ="admin")]
         [HttpDelete]
         [Route("/TicketDetails/{ticketId:int}&{userId:int}")]
         public async Task<IActionResult> DeleteTicketDetails([FromRoute] int ticketId, [FromRoute] int userId)
@@ -453,8 +469,10 @@ namespace NISA.Api.Controllers
         //    return Ok(res);
         //}
 
+
         [HttpGet]
         [Route("/TicketDetails/{department}")]
+        [Authorize(Roles = "head")]
         public async Task<IActionResult> GetById([FromRoute] string department)
         {
             var res = dbconn.ticketDetails.Where(x => x.departmentLookUpId == dbconn.lookUpTables.FirstOrDefault(x=> x.value.Equals(department)).id && x.isDeleted == false).ToList();
@@ -462,21 +480,29 @@ namespace NISA.Api.Controllers
         }
 
         [HttpGet]
-        [Route("/TicketDetails/{department}&{status}")]
-        public async Task<IActionResult> GetByDepartmentAndStatus([FromRoute] string department, [FromRoute] string status)
+        [Route("/TicketDetails/{department}&{status}&{userId:int}")]
+        public async Task<IActionResult> GetByDepartmentAndStatus([FromRoute] string department, [FromRoute] string status, [FromRoute] int userId)
         {
             if (status == "all" && department == "all")
             {
-                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false).ToListAsync());
+                return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false).ToListAsync());
             }
             else if (status == "all" && department != "all")
             {
-                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.department.Equals(department)).ToListAsync());
+                return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false && x.department.Equals(department)).ToListAsync());
             }
             else if (status != "all" && department == "all") {
-                return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.status.Equals(status)).ToListAsync());
+                if(status.Equals("reopened"))
+                {
+                    return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isReopened == true && x.isDeleted == false).ToListAsync());
+                }
+                else return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isReopened == false && x.isDeleted == false && x.status.Equals(status)).ToListAsync());
             }
-            return Ok(await dbconn.ticketDetails.Where(x => x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
+            if(status.Equals("reopened"))
+            {
+                return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isDeleted == false && x.isReopened == true && x.department.Equals(department)).ToListAsync());
+            }
+            return Ok(await dbconn.ticketDetails.Where(x => x.userId == userId && x.isReopened == false && x.isDeleted == false && x.status.Equals(status) && x.department.Equals(department)).ToListAsync());
         }
 
         [HttpPut]
